@@ -7,6 +7,8 @@ edition = "2021"
 
 [dependencies]
 clap = { version = "4.5.1", features = ["derive"] }
-hex-literal = "0.4.1"
-serde = "1.0.197"
+cxx = { version = "1.0.119", features = ["c++20"] }
 sha2 = "0.10.8"
+
+[build-dependencies]
+cxx-build = "1.0.119"

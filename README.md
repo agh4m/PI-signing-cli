@@ -13,15 +13,21 @@ It is recomended to have both C++ and Rust tooling for development.
 
 ### Building
 
-To build the project, you need to have Rust and Cargo installed. You also need to have the Autentication.Gov adapter compiled and available in its default location.
+To build the project, you need to have Rust and Cargo installed. You also need to have the Autentication.Gov skd installed and a suitable C++ compiler installed in your system.
 
-To build the project, run the following command:
+To build the project in dev mode, run the following command:
 
 ```sh
 cargo build
 ```
 
-This will compile the project and generate the binary in the `target/debug` directory.
+Alternatively, run the following to build in production optimized mode:
+
+```sh
+cargo build --release
+```
+
+This will compile the project and generate the binary in the `target/debug` or `target/release` directory respectively.
 
 ### Running
 

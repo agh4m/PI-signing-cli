@@ -33,3 +33,5 @@
 *.app
 cmake-build-debug/
 .idea/
+hashes.json
+hashes.sig

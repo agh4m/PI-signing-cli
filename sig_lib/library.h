@@ -3,7 +3,7 @@
 #include "rust/cxx.h"
 #include <string>
 
-int sig_doc(rust::Str sha);
+int sig_doc(rust::Str sha, rust::Str file_name, bool sign, bool cmd);
 
 int handle_err(std::string err_msg);
 

@@ -50,7 +50,11 @@ fn main() {
     }
 
     if let Some(hash_file) = save_file(documents, &save_location.to_str().unwrap()) {
-        ffi::sig_doc(&hash_file);
+        let err = ffi::sig_doc(&hash_file);
+        if err != 0 {
+            eprintln!("Error signing document: {:?}", err);
+            std::process::exit(1);
+        }
         println!("Signed : {:?}", hash_file);
     } else {
         std::process::exit(1);

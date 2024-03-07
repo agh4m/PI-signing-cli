@@ -7,4 +7,5 @@ fn main() {
     println!("cargo:rerun-if-changed=src/main.rs");
     println!("cargo:rerun-if-changed=sig_lib/library.cpp");
     println!("cargo:rerun-if-changed=sig_lib/library.h");
+    println!("cargo:rustc-link-lib=pteidlib");
 }

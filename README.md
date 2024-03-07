@@ -36,12 +36,14 @@ This will compile the project and run it with the given arguments.
 #### Available arguments
 
 The available arguments are:
+```
 -p --path: The path to the directory to index (Required)
 -s --save_location: The location to save the signed hashes (Optional) (Default: ./)
 -c --cmd: Give the choice to use Chave Móvel Digital or Cartão de Cidadão (Optional) (Default: 1 - Cartão de Cidadão)
   -to use Chave Móvel Digital, use 0
 -h --help: Show the help message (Exclusive)
 -V --version: Show the version of the tool (Exclusive)
+```
 
 ## Installation
 

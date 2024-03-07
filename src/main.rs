@@ -9,7 +9,7 @@ pub mod ffi {
     unsafe extern "C++" {
         include!("cli_test/sig_lib/library.h");
 
-        fn sig_doc(path: &str) -> i32;
+        fn sig_doc(sha: &str) -> i32;
     }
 }
 
@@ -49,13 +49,17 @@ fn main() {
         }
     }
 
-    if let Some(hash_file) = save_file(documents, &save_location.to_str().unwrap()) {
-        let err = ffi::sig_doc(&hash_file);
+    if let Some(hash_json) = save_file(documents, &save_location.to_str().unwrap()) {
+        let Some(doc_hash) = hash_file(Path::new(&hash_json)) else {
+            eprintln!("Error creating hash of the hashes file");
+            std::process::exit(1);
+        };
+        let err = ffi::sig_doc(&doc_hash.hash.as_str());
         if err != 0 {
             eprintln!("Error signing document: {:?}", err);
             std::process::exit(1);
         }
-        println!("Signed : {:?}", hash_file);
+        println!("Signed : {:?}", hash_json);
     } else {
         std::process::exit(1);
     }

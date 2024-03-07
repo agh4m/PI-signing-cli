@@ -8,8 +8,8 @@ use std::path::Path;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Document {
-    path: String,
-    hash: String,
+    pub path: String,
+    pub hash: String,
 }
 
 pub fn traverse_directory(path: &Path) -> Vec<Document> {

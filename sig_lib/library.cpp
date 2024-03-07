@@ -2,25 +2,36 @@
 #include "eidlibException.h"
 #include "rust/cxx.h"
 #include <iostream>
+#include <ostream>
 #include <string>
+// #include <string>
 
 using namespace eIDMW;
 
-int sig_doc(rust::Str path) {
+int handle_err(std::string err_msg) {
+  PTEID_ReleaseSDK();
+  std::cerr << err_msg << std::endl;
+  return 1;
+}
+
+int sig_doc(rust::Str sha) {
   try {
     PTEID_ReaderContext &readerContext =
         PTEID_ReaderSet::instance().getReader();
     PTEID_EIDCard &card = readerContext.getEIDCard();
 
-    PTEID_PDFSignature signature((char *)std::string(path).data());
-
+    PTEID_ByteArray sha_arr((unsigned char *)std::string(sha).data(), 256);
+    PTEID_ByteArray sig_sha = card.SignSHA256(sha_arr);
+    sig_sha.writeToFile("hashes.sig");
   } catch (const PTEID_ExNoReader &e) {
-    PTEID_ReleaseSDK();
-    std::cerr << "No reader found" << std::endl;
-    return 1;
+    return handle_err("No reader found");
+  } catch (const PTEID_ExNoCardPresent &e) {
+    return handle_err("No card present");
+  } catch (const PTEID_Exception &e) {
+    return handle_err("Unkown error ocurred");
   }
 
   PTEID_ReleaseSDK();
-  std::cout << "Signing document: " << path << std::endl;
+  std::cout << "Signing document: " << sha << std::endl;
   return 0;
 }

@@ -66,7 +66,7 @@ pub fn hash_file(path: &Path) -> Option<Document> {
     return Some(document);
 }
 
-pub fn save_file(documents: Vec<Document>, path: &str) -> Option<String> {
+pub fn save_file(documents: &Vec<Document>, path: &str) -> Option<String> {
     let Ok(json) = serde_json::to_string(&documents) else {
         eprintln!("Could not serialize hashes to JSON");
         return None;

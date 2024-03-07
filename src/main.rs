@@ -1,8 +1,10 @@
+use crate::communication::send_file;
 use crate::util::{hash_file, save_file, traverse_directory};
 use clap::Parser;
 use dotenv_codegen::dotenv;
 use std::path::Path;
 
+mod communication;
 mod util;
 
 #[cxx::bridge]
@@ -29,6 +31,10 @@ struct Args {
     /// Set to 0 to use Chave Movel Digital
     #[arg(short, long, default_value_t = 1)]
     cmd: u8,
+
+    /// Set to 1 to not send the file to the service
+    #[arg(short, long, default_value_t = 0)]
+    send: u8,
 }
 
 fn main() {
@@ -39,6 +45,7 @@ fn main() {
     let path = Path::new(&args.path);
     let save_location = Path::new(&args.save_location);
     let cmd = args.cmd == 0;
+    let send = args.send == 0;
 
     if !path.exists() {
         eprintln!("Path does not exist: {:?}", path);
@@ -60,7 +67,7 @@ fn main() {
         }
     }
 
-    if let Some(hash_json) = save_file(documents, &save_location.to_str().unwrap()) {
+    if let Some(hash_json) = save_file(&documents, &save_location.to_str().unwrap()) {
         let Some(doc_hash) = hash_file(Path::new(&hash_json)) else {
             eprintln!("Error creating hash of the hashes file");
             std::process::exit(1);
@@ -80,5 +87,9 @@ fn main() {
         println!("Signed : {:?}", hash_json);
     } else {
         std::process::exit(1);
+    }
+
+    if send {
+        send_file(&documents, &save_location.to_str().unwrap());
     }
 }

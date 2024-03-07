@@ -45,6 +45,10 @@ The available arguments are:
 -V --version: Show the version of the tool (Exclusive)
 ```
 
-## Installation
+## Testing
 
 todo!()
+
+## Installation
+
+Precompiled binaries for Windows and Linux are available in the releases tab.

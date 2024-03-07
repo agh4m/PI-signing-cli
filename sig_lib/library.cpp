@@ -16,7 +16,7 @@ int sig_doc(rust::Str path) {
 
     PTEID_PDFSignature signature(path_c);
 
-  } catch (PTEID_ExNoReader) {
+  } catch (const PTEID_ExNoReader &e) {
     PTEID_ReleaseSDK();
     std::cerr << "No reader found" << std::endl;
     return 1;

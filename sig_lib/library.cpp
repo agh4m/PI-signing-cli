@@ -2,6 +2,7 @@
 #include "eidlibException.h"
 #include "rust/cxx.h"
 #include <iostream>
+#include <string>
 
 using namespace eIDMW;
 
@@ -11,10 +12,7 @@ int sig_doc(rust::Str path) {
         PTEID_ReaderSet::instance().getReader();
     PTEID_EIDCard &card = readerContext.getEIDCard();
 
-    std::string path_str = std::string(path);
-    char *path_c = path_str.data();
-
-    PTEID_PDFSignature signature(path_c);
+    PTEID_PDFSignature signature((char *)std::string(path).data());
 
   } catch (const PTEID_ExNoReader &e) {
     PTEID_ReleaseSDK();

@@ -35,6 +35,10 @@ struct Args {
     /// Set to 1 to not send the file to the service
     #[arg(short, long, default_value_t = 0)]
     arquive_file: u8,
+
+    /// Set the maximum number of threads to use, default is half of the available threads
+    #[arg(short, long, default_value_t = 0)]
+    threads: usize,
 }
 
 fn main() {
@@ -46,6 +50,11 @@ fn main() {
     let save_location = Path::new(&args.save_location);
     let cmd = args.cmd == 0;
     let send = args.arquive_file == 0;
+    let mut threads = args.threads;
+
+    if threads == 0 {
+        threads = std::thread::available_parallelism().unwrap().get() / 2;
+    }
 
     if !path.exists() {
         eprintln!("Path does not exist: {:?}", path);
@@ -55,7 +64,7 @@ fn main() {
     let mut documents = Vec::new();
 
     if path.is_dir() {
-        documents = traverse_directory(&path);
+        documents = traverse_directory(&path, threads);
     }
 
     if path.is_file() {

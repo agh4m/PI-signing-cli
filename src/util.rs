@@ -7,7 +7,7 @@ use std::fs::File;
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
-use std::thread;
+use std::{thread, usize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Document {
@@ -29,7 +29,9 @@ fn visit(
     og_path: &Path,
     docs: Arc<Mutex<Vec<Document>>>,
     dirs: Arc<Mutex<VecDeque<Box<PathBuf>>>>,
+    count: Arc<Mutex<usize>>,
 ) {
+    *count.lock().unwrap() += 1;
     for entry in og_path.read_dir().unwrap() {
         let entry = entry.unwrap();
         let path = entry.path();
@@ -42,11 +44,13 @@ fn visit(
             dirs.push_back(path);
         }
     }
+    *count.lock().unwrap() -= 1;
 }
 
-pub fn traverse_directory(path: &Path) -> Vec<Document> {
+pub fn traverse_directory(path: &Path, threads: usize) -> Vec<Document> {
     let documents = Arc::new(Mutex::new(Vec::new()));
     let dirs: Arc<Mutex<VecDeque<Box<PathBuf>>>> = Arc::new(Mutex::new(VecDeque::new()));
+    let count: Arc<Mutex<usize>> = Arc::new(Mutex::new(0));
     let mut handles = Vec::new();
 
     for entry in path.read_dir().unwrap() {
@@ -68,8 +72,15 @@ pub fn traverse_directory(path: &Path) -> Vec<Document> {
         let path = dir.pop_front().unwrap();
         let documents = Arc::clone(&documents);
         let dirs = Arc::clone(&dirs);
-        let handle = thread::spawn(move || visit(&path, documents, dirs));
+        let cnt = Arc::clone(&count);
+
+        let handle = thread::spawn(move || visit(&path, documents, dirs, cnt));
         handles.push(handle);
+
+        while *count.lock().unwrap() > threads {
+            std::thread::sleep(std::time::Duration::from_millis(1));
+        }
+
         drop(dir);
         std::thread::sleep(std::time::Duration::from_millis(1));
     }
@@ -78,9 +89,7 @@ pub fn traverse_directory(path: &Path) -> Vec<Document> {
         handle.join().unwrap();
     }
 
-    let documents = documents.lock().unwrap();
-
-    return documents.to_vec();
+    return documents.lock().unwrap().to_vec();
 }
 
 pub fn hash_file(path: &Path) -> Option<Document> {

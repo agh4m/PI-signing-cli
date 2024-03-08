@@ -1,46 +1,86 @@
 use serde::{Deserialize, Serialize};
 use serde_json;
 use sha2::{Digest, Sha256};
+use std::collections::VecDeque;
 use std::fmt::Debug;
 use std::fs::File;
 use std::io::{self, Write};
-use std::path::Path;
+use std::path::{Path, PathBuf};
+use std::sync::{Arc, Mutex};
+use std::thread;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Document {
     pub path: String,
     pub hash: String,
 }
 
+fn visit_file(path: &Path, docs: &Arc<Mutex<Vec<Document>>>) {
+    let document = hash_file(&path);
+    if let Some(document) = document {
+        let mut documents = docs.lock().unwrap();
+        documents.push(document);
+    } else {
+        eprintln!("Could not hash file: {:?}", path);
+    }
+}
+
+fn visit(
+    og_path: &Path,
+    docs: Arc<Mutex<Vec<Document>>>,
+    dirs: Arc<Mutex<VecDeque<Box<PathBuf>>>>,
+) {
+    for entry in og_path.read_dir().unwrap() {
+        let entry = entry.unwrap();
+        let path = entry.path();
+        if path.is_file() {
+            visit_file(&path, &docs);
+        }
+        if path.is_dir() {
+            let mut dirs = dirs.lock().unwrap();
+            let path = Box::new(path);
+            dirs.push_back(path);
+        }
+    }
+}
+
 pub fn traverse_directory(path: &Path) -> Vec<Document> {
-    let mut documents = Vec::new();
+    let documents = Arc::new(Mutex::new(Vec::new()));
+    let dirs: Arc<Mutex<VecDeque<Box<PathBuf>>>> = Arc::new(Mutex::new(VecDeque::new()));
+    let mut handles = Vec::new();
 
     for entry in path.read_dir().unwrap() {
         let entry = entry.unwrap();
         let path = entry.path();
-
         if path.is_file() {
-            let document = hash_file(&path);
-            if let Some(document) = document {
-                documents.push(document);
-            } else {
-                eprintln!("Could not hash file: {:?}", path);
-            }
+            visit_file(&path, &documents);
         }
+
         if path.is_dir() {
-            let mut sub_documents = traverse_directory(&path);
-            documents.append(&mut sub_documents);
+            let mut dirs = dirs.lock().unwrap();
+            let path = Box::new(path);
+            dirs.push_back(path);
         }
     }
 
-    if documents.is_empty() {
-        eprintln!(
-            "No documents found in directory: {:?}, or could not hash them",
-            path
-        );
+    while !dirs.lock().unwrap().is_empty() {
+        let mut dir = dirs.lock().unwrap();
+        let path = dir.pop_front().unwrap();
+        let documents = Arc::clone(&documents);
+        let dirs = Arc::clone(&dirs);
+        let handle = thread::spawn(move || visit(&path, documents, dirs));
+        handles.push(handle);
+        drop(dir);
+        std::thread::sleep(std::time::Duration::from_millis(1));
     }
 
-    return documents;
+    for handle in handles {
+        handle.join().unwrap();
+    }
+
+    let documents = documents.lock().unwrap();
+
+    return documents.to_vec();
 }
 
 pub fn hash_file(path: &Path) -> Option<Document> {

@@ -34,7 +34,7 @@ struct Args {
 
     /// Set to 1 to not send the file to the service
     #[arg(short, long, default_value_t = 0)]
-    send: u8,
+    arquive_file: u8,
 }
 
 fn main() {
@@ -45,7 +45,7 @@ fn main() {
     let path = Path::new(&args.path);
     let save_location = Path::new(&args.save_location);
     let cmd = args.cmd == 0;
-    let send = args.send == 0;
+    let send = args.arquive_file == 0;
 
     if !path.exists() {
         eprintln!("Path does not exist: {:?}", path);

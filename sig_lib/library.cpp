@@ -24,8 +24,9 @@ int sig_doc(rust::Str sha, rust::Str file_name, bool sign, bool cmd) {
           PTEID_ReaderSet::instance().getReader();
       PTEID_EIDCard &card = readerContext.getEIDCard();
 
-      PTEID_ByteArray sha_arr((unsigned char *)std::string(sha).data(), 256);
+      PTEID_ByteArray sha_arr((unsigned char *)std::string(sha).data(), 64);
       if (sign) {
+        sha_arr.writeToFile("sha.txt");
         PTEID_ByteArray sig_sha = card.SignSHA256(sha_arr);
         sig_sha.writeToFile(std::string(file_name).data());
       } else {
@@ -37,6 +38,7 @@ int sig_doc(rust::Str sha, rust::Str file_name, bool sign, bool cmd) {
     } catch (const PTEID_ExNoCardPresent &e) {
       return handle_err("No card present");
     } catch (const PTEID_Exception &e) {
+      std::cerr << e.GetError() << std::endl;
       return handle_err("Unkown error ocurred");
     }
 

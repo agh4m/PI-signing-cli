@@ -26,7 +26,6 @@ int sig_doc(rust::Str sha, rust::Str file_name, bool sign, bool cmd) {
 
       PTEID_ByteArray sha_arr((unsigned char *)std::string(sha).data(), 64);
       if (sign) {
-        sha_arr.writeToFile("sha.txt");
         PTEID_ByteArray sig_sha = card.SignSHA256(sha_arr);
         sig_sha.writeToFile(std::string(file_name).data());
       } else {

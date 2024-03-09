@@ -58,3 +58,27 @@ todo!()
 ## Installation
 
 Precompiled binaries for Windows and Linux are available in the releases tab.
+
+
+## FAQ
+
+> Cannot compile the project
+
+Make sure you have the Autentication.Gov SDK installed and a suitable C++ compiler installed in your system.
+On Linux systems, this should be gcc, on windows it should be MSVC. Visual Studio might be needed.
+On Windows some configuration might be needed, as the SDK is not installed in a path that is automatically detected by the MSVC.
+
+> Cannot detect card readers
+
+On Linux, make sure you have the `pcscd` service running.
+This can be done by running the following command:
+
+```sh
+sudo systemctl start pcscd
+```
+
+You might also want to enable the service to start on boot:
+
+```sh
+sudo systemctl enable pcscd
+```

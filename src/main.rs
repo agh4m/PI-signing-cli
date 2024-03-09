@@ -3,6 +3,8 @@ use crate::util::{hash_file, save_file, traverse_directory};
 use clap::Parser;
 use dotenv_codegen::dotenv;
 use std::path::Path;
+use std::process::exit;
+use std::thread::available_parallelism;
 
 mod communication;
 mod util;
@@ -53,12 +55,12 @@ fn main() {
     let mut threads = args.threads;
 
     if threads == 0 {
-        threads = std::thread::available_parallelism().unwrap().get() / 2;
+        threads = available_parallelism().unwrap().get() / 2;
     }
 
     if !path.exists() {
         eprintln!("Path does not exist: {:?}", path);
-        std::process::exit(1);
+        exit(1);
     }
 
     let mut documents = Vec::new();
@@ -72,14 +74,14 @@ fn main() {
             documents.push(document);
         } else {
             eprintln!("Could not hash file: {:?}", path);
-            std::process::exit(1);
+            exit(1);
         }
     }
 
     if let Some(hash_json) = save_file(&documents, &save_location.to_str().unwrap()) {
         let Some(doc_hash) = hash_file(Path::new(&hash_json)) else {
             eprintln!("Error creating hash of the hashes file");
-            std::process::exit(1);
+            exit(1);
         };
 
         let err = ffi::sig_doc(
@@ -91,11 +93,11 @@ fn main() {
 
         if err != 0 {
             eprintln!("Error signing document: {:?}", err);
-            std::process::exit(1);
+            exit(1);
         }
         println!("Signed : {:?}", hash_json);
     } else {
-        std::process::exit(1);
+        exit(1);
     }
 
     if send {

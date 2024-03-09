@@ -7,6 +7,8 @@ use std::fs::File;
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
 use std::sync::{Arc, Mutex};
+use std::thread::sleep;
+use std::time::Duration;
 use std::{thread, usize};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
@@ -78,11 +80,11 @@ pub fn traverse_directory(path: &Path, threads: usize) -> Vec<Document> {
         handles.push(handle);
 
         while *count.lock().unwrap() > threads {
-            std::thread::sleep(std::time::Duration::from_millis(1));
+            sleep(Duration::from_millis(1));
         }
 
         drop(dir);
-        std::thread::sleep(std::time::Duration::from_millis(1));
+        sleep(Duration::from_millis(1));
     }
 
     for handle in handles {

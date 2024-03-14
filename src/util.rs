@@ -55,19 +55,7 @@ pub fn traverse_directory(path: &Path, threads: usize) -> Vec<Document> {
     let count: Arc<Mutex<usize>> = Arc::new(Mutex::new(0));
     let mut handles = Vec::new();
 
-    for entry in path.read_dir().unwrap() {
-        let entry = entry.unwrap();
-        let path = entry.path();
-        if path.is_file() {
-            visit_file(&path, &documents);
-        }
-
-        if path.is_dir() {
-            let mut dirs = dirs.lock().unwrap();
-            let path = Box::new(path);
-            dirs.push_back(path);
-        }
-    }
+    dirs.lock().unwrap().push_back(Box::new(path.to_path_buf()));
 
     while !dirs.lock().unwrap().is_empty() {
         let mut dir = dirs.lock().unwrap();
@@ -117,11 +105,14 @@ pub fn hash_file(path: &Path) -> Option<Document> {
     return Some(document);
 }
 
-pub fn save_file(documents: &Vec<Document>, path: &str) -> Option<String> {
-    let Ok(json) = serde_json::to_string(&documents) else {
+pub fn save_file(documents: &Vec<Document>, path: &str, cwd: &Path) -> Option<String> {
+    let Ok(mut json) = serde_json::to_string(&documents) else {
         eprintln!("Could not serialize hashes to JSON");
         return None;
     };
+    let str = format!("{{\n\"OriginalDir\":{:?},\"hashes\": ", cwd);
+    json.insert_str(0, &str);
+    json.push_str("\n}");
 
     let mut save_path: String = "".to_string();
 

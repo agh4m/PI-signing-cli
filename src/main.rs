@@ -2,6 +2,7 @@ use crate::communication::send_file;
 use crate::util::{hash_file, save_file, traverse_directory};
 use clap::Parser;
 use dotenv_codegen::dotenv;
+use std::env::current_dir;
 use std::path::Path;
 use std::process::exit;
 use std::thread::available_parallelism;
@@ -54,6 +55,8 @@ fn main() {
     let send = args.arquive_file == 0;
     let mut threads = args.threads;
 
+    let cwd = current_dir().unwrap();
+
     if threads == 0 {
         threads = available_parallelism().unwrap().get() / 2;
     }
@@ -78,7 +81,7 @@ fn main() {
         }
     }
 
-    if let Some(hash_json) = save_file(&documents, &save_location.to_str().unwrap()) {
+    if let Some(hash_json) = save_file(&documents, &save_location.to_str().unwrap(), &cwd) {
         let Some(doc_hash) = hash_file(Path::new(&hash_json)) else {
             eprintln!("Error creating hash of the hashes file");
             exit(1);

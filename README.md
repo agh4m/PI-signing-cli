@@ -11,6 +11,23 @@ The adapter is a shared library that is loaded by the Rust code, and compiled by
 
 It is recomended to have both C++ and Rust tooling for development.
 
+### Dotenv
+
+This project uses a `.env` file to store the environment variables.
+
+The following variables are required:
+
+```
+RELEASE_MODE=production | development
+BASIC_AUTH_USER=<username>
+BASIC_AUTH_PASS=<password>
+APPLICATION_ID=<application_id>
+```
+
+The `RELEASE_MODE` variable is used to determine if a signature is produced or not. If set to `production`, the documents are signed, however, if set to `development`, the signing step is skipped.
+`BASIC_AUTH_USER`, `BASIC_AUTH_PASS` and `APPLICATION_ID` are used to authenticate with the CMD server.
+
+
 ### Building
 
 To build the project, you need to have Rust and Cargo installed. You also need to have the Autentication.Gov skd installed and a suitable C++ compiler installed in your system.

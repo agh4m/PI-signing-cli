@@ -92,7 +92,7 @@ fn main() {
     if let Some(hash_json) = save_file(&documents, &save_location.to_str().unwrap(), &cwd) {
         let err = ffi::sig_doc(
             &hash_json,
-            &hash_json.replace(".json", ".sig"),
+            &hash_json.replace(".json", ".asics"),
             mode == "production",
             cmd,
             "",

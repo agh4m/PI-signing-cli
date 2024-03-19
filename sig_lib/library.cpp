@@ -35,11 +35,9 @@ int sig_doc(rust::Str sha, rust::Str file_name, bool sign, bool cmd,
       PTEID_EIDCard &card = readerContext.getEIDCard();
 
       PTEID_ByteArray sha_arr((unsigned char *)std::string(sha).data(), 64);
+      std::cout << "Signing as: " << card.getID().getGivenName() << std::endl;
       if (sign) {
         card.SignXadesT(std::string(file_name).data(), files, 1);
-      } else {
-        std::cout << card.getID().getGivenName() << std::endl;
-        sha_arr.writeToFile(std::string(file_name).data());
       }
     }
   } catch (const PTEID_ExNoReader &e) {

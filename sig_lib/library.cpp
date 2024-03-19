@@ -4,7 +4,6 @@
 #include <iostream>
 #include <ostream>
 #include <string>
-// #include <string>
 
 using namespace eIDMW;
 
@@ -14,10 +13,20 @@ int handle_err(std::string err_msg) {
   return 1;
 }
 
-int sig_doc(rust::Str sha, rust::Str file_name, bool sign, bool cmd) {
+int sig_doc(rust::Str sha, rust::Str file_name, bool sign, bool cmd,
+            rust::Str basicAuthUser, rust::Str basicAuthPassword,
+            rust::Str applicationId) {
   if (cmd) {
-    std::cout << "Not implemented" << std::endl;
-    return 255;
+    PTEID_CMDSignatureClient cmdClient = PTEID_CMDSignatureClient();
+    cmdClient.setCredentials(std::string(basicAuthUser).data(),
+                             std::string(basicAuthPassword).data(),
+                             std::string(applicationId).data());
+
+    std::string file_name_str = std::string(file_name);
+    const char *files[] = {file_name_str.data()};
+    cmdClient.SignXades(std::string(file_name).data(), files, 1);
+
+    return 0;
   } else {
     try {
       PTEID_ReaderContext &readerContext =
@@ -26,8 +35,9 @@ int sig_doc(rust::Str sha, rust::Str file_name, bool sign, bool cmd) {
 
       PTEID_ByteArray sha_arr((unsigned char *)std::string(sha).data(), 64);
       if (sign) {
-        PTEID_ByteArray sig_sha = card.SignSHA256(sha_arr);
-        sig_sha.writeToFile(std::string(file_name).data());
+        std::string file_name_str = std::string(sha);
+        const char *files[] = {file_name_str.data()};
+        card.SignXadesT(std::string(file_name).data(), files, 1);
       } else {
         std::cout << card.getID().getGivenName() << std::endl;
         sha_arr.writeToFile(std::string(file_name).data());

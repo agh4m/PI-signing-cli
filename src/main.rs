@@ -15,7 +15,15 @@ pub mod ffi {
     unsafe extern "C++" {
         include!("cli_test/sig_lib/library.h");
 
-        fn sig_doc(sha: &str, file_name: &str, sign: bool, cmd: bool) -> i32;
+        fn sig_doc(
+            sha: &str,
+            file_name: &str,
+            sign: bool,
+            cmd: bool,
+            basicAuthUser: &str,
+            basicAuthPassword: &str,
+            applicationID: &str,
+        ) -> i32;
     }
 }
 
@@ -82,16 +90,14 @@ fn main() {
     }
 
     if let Some(hash_json) = save_file(&documents, &save_location.to_str().unwrap(), &cwd) {
-        let Some(doc_hash) = hash_file(Path::new(&hash_json)) else {
-            eprintln!("Error creating hash of the hashes file");
-            exit(1);
-        };
-
         let err = ffi::sig_doc(
-            &doc_hash.hash.as_str(),
+            &hash_json,
             &hash_json.replace(".json", ".sig"),
             mode == "production",
             cmd,
+            "",
+            "",
+            ""
         );
 
         if err != 0 {

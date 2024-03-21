@@ -74,7 +74,14 @@ The available arguments are:
 
 ## Testing
 
-todo!()
+Whilst there are some tests, these only test certain functions of the project.
+Some functions were deemed too simple to test, or out of the scope of what should be tested (e.g. functions that only call other functions, or functions that call libraries).
+
+To run the tests, use the following command:
+
+```sh
+cargo test
+```
 
 ## Installation
 

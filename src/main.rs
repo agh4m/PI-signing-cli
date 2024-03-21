@@ -1,3 +1,4 @@
+use crate::blockchain::save_certificate;
 use crate::communication::send_file;
 use crate::util::{hash_file, save_file, traverse_directory};
 use clap::Parser;
@@ -7,6 +8,7 @@ use std::path::Path;
 use std::process::exit;
 use std::thread::available_parallelism;
 
+mod blockchain;
 mod communication;
 mod util;
 
@@ -15,15 +17,17 @@ pub mod ffi {
     unsafe extern "C++" {
         include!("cli_test/sig_lib/library.h");
 
+        // file_name is the path of the file that contains the hashes
+        // sig_file is the path of the file that will contain the signature
         fn sig_doc(
-            sha: &str,
             file_name: &str,
+            sig_file: &str,
             sign: bool,
             cmd: bool,
             basic_auth_user: &str,
             basicAuthPassword: &str,
             applicationID: &str,
-        ) -> i32;
+        ) -> i64;
     }
 }
 
@@ -39,13 +43,13 @@ struct Args {
     #[arg(short, long, default_value = "./")]
     save_location: String,
 
-    /// Set to 0 to use Chave Movel Digital
-    #[arg(short, long, default_value_t = 1)]
-    cmd: u8,
+    /// Add this flag use Chave Movel Digital
+    #[arg(short, long)]
+    cmd: bool,
 
-    /// Set to 1 to not send the file to the service
-    #[arg(short, long, default_value_t = 0)]
-    arquive_file: u8,
+    /// Add this flag to not send the file to the service
+    #[arg(short, long)]
+    arquive_file: bool,
 
     /// Set the maximum number of threads to use, default is half of the available threads
     #[arg(short, long, default_value_t = 0)]
@@ -59,8 +63,8 @@ fn main() {
 
     let path = Path::new(&args.path);
     let save_location = Path::new(&args.save_location);
-    let cmd = args.cmd == 0;
-    let send = args.arquive_file == 0;
+    let cmd = args.cmd;
+    let send = !args.arquive_file;
     let mut threads = args.threads;
 
     let cwd = current_dir().unwrap();
@@ -89,31 +93,34 @@ fn main() {
         }
     }
 
-    if let Some(hash_json) = save_file(&documents, &save_location.to_str().unwrap(), &cwd) {
-        let basic_auth_user = dotenv!("BASIC_AUTH_USER");
-        let basic_auth_password = dotenv!("BASIC_AUTH_PASS");
-        let application_id = dotenv!("APPLICATION_ID");
+    let Some(hash_json) = save_file(&documents, &save_location.to_str().unwrap(), &cwd) else {
+        eprintln!("Could not save file: {:?}", path);
+        exit(1);
+    };
 
-        let err = ffi::sig_doc(
-            &hash_json,
-            &hash_json.replace(".json", ".asics"),
-            mode == "production",
-            cmd,
-            basic_auth_user,
-            basic_auth_password,
-            application_id,
-        );
+    // Load environment variables needed for CMD
+    let basic_auth_user = dotenv!("BASIC_AUTH_USER");
+    let basic_auth_password = dotenv!("BASIC_AUTH_PASS");
+    let application_id = dotenv!("APPLICATION_ID");
 
-        if err != 0 {
-            eprintln!("Error signing document: {:?}", err);
-            exit(1);
-        }
-        println!("Signed : {:?}", hash_json);
-    } else {
+    let err = ffi::sig_doc(
+        &hash_json,
+        &hash_json.replace(".json", ".asics"),
+        mode == "production",
+        cmd,
+        basic_auth_user,
+        basic_auth_password,
+        application_id,
+    );
+
+    if err != 0 {
+        eprintln!("Error signing document: 0x{:x}", err);
         exit(1);
     }
+    println!("Signed : {:?}", hash_json);
 
     if send {
+        save_certificate(&hash_json);
         send_file(&documents, &save_location.to_str().unwrap());
     }
 }

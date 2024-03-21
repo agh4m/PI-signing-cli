@@ -20,7 +20,7 @@ pub mod ffi {
             file_name: &str,
             sign: bool,
             cmd: bool,
-            basicAuthUser: &str,
+            basic_auth_user: &str,
             basicAuthPassword: &str,
             applicationID: &str,
         ) -> i32;
@@ -90,14 +90,18 @@ fn main() {
     }
 
     if let Some(hash_json) = save_file(&documents, &save_location.to_str().unwrap(), &cwd) {
+        let basic_auth_user = dotenv!("BASIC_AUTH_USER");
+        let basic_auth_password = dotenv!("BASIC_AUTH_PASS");
+        let application_id = dotenv!("APPLICATION_ID");
+
         let err = ffi::sig_doc(
             &hash_json,
             &hash_json.replace(".json", ".asics"),
             mode == "production",
             cmd,
-            "",
-            "",
-            ""
+            basic_auth_user,
+            basic_auth_password,
+            application_id,
         );
 
         if err != 0 {

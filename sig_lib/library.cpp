@@ -8,48 +8,50 @@
 
 using namespace eIDMW;
 
-int handle_err(std::string err_msg) {
-  PTEID_ReleaseSDK();
-  std::cerr << err_msg << std::endl;
-  return 1;
+int handle_err(const std::string &err_msg) {
+    PTEID_ReleaseSDK();
+    std::cerr << err_msg << std::endl;
+    return 1;
 }
 
 int sig_doc(rust::Str sha, rust::Str file_name, bool sign, bool cmd,
             rust::Str basicAuthUser, rust::Str basicAuthPassword,
             rust::Str applicationId) {
-  std::string file_name_str = std::string(file_name);
-  const char *files[] = {file_name_str.data()};
+    std::string file_name_str = std::string(sha);
+    const char *files[] = {file_name_str.data()};
 
-  try {
-    if (cmd) {
-      PTEID_CMDSignatureClient cmdClient = PTEID_CMDSignatureClient();
-      cmdClient.setCredentials(std::string(basicAuthUser).data(),
-                               std::string(basicAuthPassword).data(),
-                               std::string(applicationId).data());
+    try {
+        if (cmd) {
+            PTEID_CMDSignatureClient cmdClient = PTEID_CMDSignatureClient();
+            PTEID_CMDSignatureClient::setCredentials(
+                    std::string(basicAuthUser).data(),
+                    std::string(basicAuthPassword).data(),
+                    std::string(applicationId).data());
 
-      // cmdClient.SignXades(std::string(file_name).data(), files, 1,
-      //                     PTEID_LEVEL_BASIC);
-    } else {
-      PTEID_ReaderContext &readerContext =
-          PTEID_ReaderSet::instance().getReader();
-      PTEID_EIDCard &card = readerContext.getEIDCard();
+            cmdClient.SignXades(std::string(file_name).data(), files, 1,
+                                PTEID_LEVEL_BASIC);
+        } else {
+            PTEID_ReaderContext &readerContext =
+                    PTEID_ReaderSet::instance().getReader();
+            PTEID_EIDCard &card = readerContext.getEIDCard();
 
-      PTEID_ByteArray sha_arr((unsigned char *)std::string(sha).data(), 64);
-      std::cout << "Signing as: " << card.getID().getGivenName() << std::endl;
-      if (sign) {
-        card.SignXadesT(std::string(file_name).data(), files, 1);
-      }
+            PTEID_ByteArray sha_arr((unsigned char *) std::string(sha).data(), 64);
+            std::cout << "Signing as: " << card.getID().getGivenName() << " "
+                      << card.getID().getSurname() << std::endl;
+            if (sign) {
+                card.SignXadesT(std::string(file_name).data(), files, 1);
+            }
+        }
+    } catch (const PTEID_ExNoReader &e) {
+        return handle_err("No reader found");
+    } catch (const PTEID_ExNoCardPresent &e) {
+        return handle_err("No card present");
+    } catch (PTEID_Exception &e) {
+        std::cerr << e.GetMessage() << std::endl;
+        return handle_err("Unkown error ocurred");
     }
-  } catch (const PTEID_ExNoReader &e) {
-    return handle_err("No reader found");
-  } catch (const PTEID_ExNoCardPresent &e) {
-    return handle_err("No card present");
-  } catch (const PTEID_Exception &e) {
-    std::cerr << e.GetError() << std::endl;
-    return handle_err("Unkown error ocurred");
-  }
 
-  PTEID_ReleaseSDK();
-  std::cout << "Signing Sha256 Hash: " << sha << std::endl;
-  return 0;
+    PTEID_ReleaseSDK();
+    std::cout << "Signing Sha256 Hash: " << sha << std::endl;
+    return 0;
 }

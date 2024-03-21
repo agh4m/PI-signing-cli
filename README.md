@@ -55,6 +55,7 @@ cargo run -- <args>
 ```
 
 This will compile the project and run it with the given arguments.
+Similarly to the build command, you can use the `--release` flag, before any other arguments, to run the project in production mode.
 
 #### Available arguments
 
@@ -62,8 +63,11 @@ The available arguments are:
 ```
 -p --path: The path to the directory to index (Required)
 -s --save_location: The location to save the signed hashes (Optional) (Default: ./)
--c --cmd: Give the choice to use Chave Móvel Digital or Cartão de Cidadão (Optional) (Default: 1 - Cartão de Cidadão)
-  -to use Chave Móvel Digital, use 0
+-c --cmd: Give the choice to use Chave Móvel Digital or Cartão de Cidadão (Optional) (Default: CC)
+  -to use Chave Móvel Digital, add this flag
+-a --archive_files: Send the file to the remote server (Optional) (Default: true)
+  -to not send the files to the remote server, add this flag
+-t --threads: The number of threads to use (Optional) (Default: half of the available cores)
 -h --help: Show the help message (Exclusive)
 -V --version: Show the version of the tool (Exclusive)
 ```

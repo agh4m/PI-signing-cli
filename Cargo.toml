@@ -1,5 +1,5 @@
 [package]
-name = "cli_test"
+name = "disa_cli"
 version = "1.0.0-alpha.1"
 edition = "2021"
 

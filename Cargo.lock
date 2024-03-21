@@ -112,20 +112,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "98cc8fbded0c607b7ba9dd60cd98df59af97e84d24e49c8557331cfc26d301ce"
 
 [[package]]
-name = "cli_test"
-version = "1.0.0-alpha.1"
-dependencies = [
- "clap",
- "cxx",
- "cxx-build",
- "dotenv",
- "dotenv_codegen",
- "serde",
- "serde_json",
- "sha2",
-]
-
-[[package]]
 name = "codespan-reporting"
 version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -212,6 +198,20 @@ checksum = "9ed9a281f7bc9b7576e61468ba615a66a5c8cfdff42420a70aa82701a3b1e292"
 dependencies = [
  "block-buffer",
  "crypto-common",
+]
+
+[[package]]
+name = "disa_cli"
+version = "1.0.0-alpha.1"
+dependencies = [
+ "clap",
+ "cxx",
+ "cxx-build",
+ "dotenv",
+ "dotenv_codegen",
+ "serde",
+ "serde_json",
+ "sha2",
 ]
 
 [[package]]

@@ -15,7 +15,7 @@ mod util;
 #[cxx::bridge]
 pub mod ffi {
     unsafe extern "C++" {
-        include!("cli_test/sig_lib/library.h");
+        include!("disa_cli/sig_lib/library.h");
 
         // file_name is the path of the file that contains the hashes
         // sig_file is the path of the file that will contain the signature

@@ -11,6 +11,7 @@ use std::thread::available_parallelism;
 mod blockchain;
 mod communication;
 mod util;
+    mod test;
 
 #[cxx::bridge]
 pub mod ffi {

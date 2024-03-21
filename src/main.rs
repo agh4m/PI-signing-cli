@@ -49,7 +49,7 @@ struct Args {
 
     /// Add this flag to not send the file to the service
     #[arg(short, long)]
-    arquive_file: bool,
+    archive_file: bool,
 
     /// Set the maximum number of threads to use, default is half of the available threads
     #[arg(short, long, default_value_t = 0)]
@@ -64,7 +64,7 @@ fn main() {
     let path = Path::new(&args.path);
     let save_location = Path::new(&args.save_location);
     let cmd = args.cmd;
-    let send = !args.arquive_file;
+    let send = !args.archive_file;
     let mut threads = args.threads;
 
     let cwd = current_dir().unwrap();

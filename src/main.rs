@@ -10,8 +10,8 @@ use std::thread::available_parallelism;
 
 mod blockchain;
 mod communication;
+mod test;
 mod util;
-    mod test;
 
 #[cxx::bridge]
 pub mod ffi {

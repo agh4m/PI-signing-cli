@@ -3,7 +3,6 @@ use crate::communication::send_file;
 use crate::util::{hash_file, save_file, traverse_directory};
 use clap::Parser;
 use dotenv_codegen::dotenv;
-use std::env::current_dir;
 use std::path::Path;
 use std::process::exit;
 use std::thread::available_parallelism;
@@ -40,7 +39,7 @@ struct Args {
     #[arg(short, long)]
     path: String,
 
-    /// Path of the signature file
+    /// Path to save the manifest file, default is the current directory, must be a directory
     #[arg(short, long, default_value = "./")]
     save_location: String,
 
@@ -57,7 +56,8 @@ struct Args {
     threads: usize,
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let mode = dotenv!("RELEASE_MODE");
 
     let args = Args::parse();
@@ -67,8 +67,6 @@ fn main() {
     let cmd = args.cmd;
     let send = !args.archive_file;
     let mut threads = args.threads;
-
-    let cwd = current_dir().unwrap();
 
     if threads == 0 {
         threads = available_parallelism().unwrap().get() / 2;
@@ -94,7 +92,7 @@ fn main() {
         }
     }
 
-    let Some(hash_json) = save_file(&documents, &save_location.to_str().unwrap(), &cwd) else {
+    let Some(hash_json) = save_file(&documents, &save_location.to_str().unwrap()) else {
         eprintln!("Could not save file: {:?}", path);
         exit(1);
     };
@@ -121,7 +119,8 @@ fn main() {
     println!("Signed : {:?}", hash_json);
 
     if send {
-        save_certificate(&hash_json);
-        send_file(&documents, &save_location.to_str().unwrap());
+
+        // save_certificate(&hash_json);
+        send_file(&documents, &save_location.to_str().unwrap()).await;
     }
 }

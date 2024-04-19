@@ -10,6 +10,7 @@ use std::sync::{Arc, Mutex};
 use std::thread::sleep;
 use std::time::Duration;
 use std::{thread, usize};
+use tar::Builder;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Document {
@@ -105,20 +106,20 @@ pub fn hash_file(path: &Path) -> Option<Document> {
     return Some(document);
 }
 
-pub fn save_file(documents: &Vec<Document>, path: &str, cwd: &Path) -> Option<String> {
-    let Ok(mut json) = serde_json::to_string(&documents) else {
+pub fn save_file(documents: &Vec<Document>, path: &str) -> Option<String> {
+    let Ok(json) = serde_json::to_string(&documents) else {
         eprintln!("Could not serialize hashes to JSON");
         return None;
     };
-    let str = format!("{{\n\"OriginalDir\":{:?},\"hashes\": ", cwd);
-    json.insert_str(0, &str);
-    json.push_str("\n}");
 
     let mut save_path: String = "".to_string();
 
     if Path::new(path).is_dir() {
         save_path = format!("{}/hashes.json", path.trim().trim_end_matches('/'));
+    } else {
+        panic!("Save Path must be a directory!");
     }
+
     let Ok(mut file) = File::create(&save_path) else {
         eprintln!("Could not create file: {:?}", path);
         return None;
@@ -131,4 +132,49 @@ pub fn save_file(documents: &Vec<Document>, path: &str, cwd: &Path) -> Option<St
     };
 
     return Some(save_path);
+}
+
+pub fn create_tar(path: &Path, save_location: &Path) -> Option<String> {
+    let save_path = format!("{}/archive.tar", save_location.to_str().unwrap());
+
+    let mut archive = Builder::new(Vec::new());
+
+    println!("Creating archive at: {:?}", save_path);
+
+    if path.is_dir() {
+        let Ok(_) = archive.append_dir_all(path.file_name().unwrap(), path) else {
+            eprintln!("Could not append directory to archive");
+            return None;
+        };
+    }
+
+    if path.is_file() {
+        let Ok(_) = archive.append_file(path.file_name().unwrap(), &mut File::open(path).unwrap()) else {
+            eprintln!("Could not append file to archive");
+            return None;
+        };
+    }
+
+    let hashes_path = format!("{}/hashes.json", save_location.to_str().unwrap());
+    let asics_path = format!("{}/hashes.asics", save_location.to_str().unwrap());
+
+    archive.append_file("hashes.json", &mut File::open(hashes_path).unwrap()).unwrap();
+    archive.append_file("hashes.asics", &mut File::open(asics_path).unwrap()).unwrap();
+
+    let Ok(archive) = archive.into_inner() else {
+        eprintln!("Could not create archive");
+        return None;
+    };
+
+    let Ok(mut file) = File::create(&save_path) else {
+        eprintln!("Could not create file: {:?}", save_path);
+        return None;
+    };
+
+    let Ok(_) = file.write_all(&archive) else {
+        eprintln!("Could not write archive to file: {:?}", save_path);
+        return None;
+    };
+
+    return Some(save_path.to_string());
 }

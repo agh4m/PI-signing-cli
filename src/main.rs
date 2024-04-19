@@ -54,6 +54,10 @@ struct Args {
     /// Set the maximum number of threads to use, default is half of the available threads
     #[arg(short, long, default_value_t = 0)]
     threads: usize,
+
+    /// authentication token
+    #[arg(short, long)]
+    bearer_token: String,
 }
 
 #[tokio::main]
@@ -67,6 +71,7 @@ async fn main() {
     let cmd = args.cmd;
     let send = !args.archive_file;
     let mut threads = args.threads;
+    let bearer_token = args.bearer_token;
 
     if threads == 0 {
         threads = available_parallelism().unwrap().get() / 2;
@@ -121,6 +126,6 @@ async fn main() {
     if send {
 
         // save_certificate(&hash_json);
-        send_file(&documents, &save_location.to_str().unwrap()).await;
+        send_file(&path, &save_location, &bearer_token).await;
     }
 }

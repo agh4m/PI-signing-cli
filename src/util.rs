@@ -135,7 +135,7 @@ pub fn save_file(documents: &Vec<Document>, path: &str) -> Option<String> {
 }
 
 pub fn create_tar(path: &Path, save_location: &Path) -> Option<String> {
-    let save_path = format!("{}/archive.tar", save_location.to_str().unwrap());
+    let save_path = format!("{}/archive.tar", save_location.to_str().unwrap().trim_end_matches('/'));
 
     let mut archive = Builder::new(Vec::new());
 

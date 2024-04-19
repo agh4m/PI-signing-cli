@@ -10,9 +10,12 @@ clap = { version = "4.5.2", features = ["derive"] }
 cxx = { version = "1.0.119", features = ["c++20"] }
 dotenv = "0.15.0"
 dotenv_codegen = "0.15.0"
+reqwest = { version = "0.12.3", features = ["json"] }
 serde = { version = "1.0.197", features = ["derive"] }
 serde_json = "1.0.114"
 sha2 = "0.10.8"
+tar = "0.4.40"
+tokio = { version = "1.37.0", features = ["full"] }
 
 [build-dependencies]
 cxx-build = "1.0.119"

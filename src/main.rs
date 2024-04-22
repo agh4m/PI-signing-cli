@@ -6,6 +6,7 @@ use dotenv_codegen::dotenv;
 use std::path::Path;
 use std::process::exit;
 use std::thread::available_parallelism;
+use std::io::stdin;
 
 mod blockchain;
 mod communication;
@@ -56,7 +57,7 @@ struct Args {
     threads: usize,
 
     /// authentication token
-    #[arg(short, long)]
+    #[arg(short, long, default_value = "")]
     bearer_token: String,
 }
 
@@ -71,7 +72,7 @@ async fn main() {
     let cmd = args.cmd;
     let send = !args.archive_file;
     let mut threads = args.threads;
-    let bearer_token = args.bearer_token;
+    let mut bearer_token = args.bearer_token;
 
     if threads == 0 {
         threads = available_parallelism().unwrap().get() / 2;
@@ -124,6 +125,10 @@ async fn main() {
     println!("Signed : {:?}", hash_json);
 
     if send {
+        if bearer_token == "" {
+            println!("No valid token provided, please input one bellow.");
+            stdin().read_line(&mut bearer_token);
+        }
 
         // save_certificate(&hash_json);
         send_file(&path, &save_location, &bearer_token).await;

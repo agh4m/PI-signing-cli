@@ -1,6 +1,6 @@
 use crate::util::create_tar;
 use crate::util::Document;
-use reqwest::{get, Client, Error};
+use reqwest::{get, multipart, Client, Error};
 use serde::Deserialize;
 use std::fs::read;
 use std::path::Path;
@@ -12,10 +12,15 @@ struct Response {
 }
 
 #[derive(Debug, Deserialize)]
-struct FileResponse{
+struct FileResponse {
     message: String,
     uuid: String,
 }
+
+// #{derive(Debug, Serialize, Deserialize)]
+// struct FileBody {
+//     manifest_hash
+// }
 
 pub async fn ping_server() -> Result<bool, Error> {
     let res = get("http://localhost:8000").await?;
@@ -45,22 +50,31 @@ pub async fn send_file(path: &Path, save_location: &Path, token: &str) {
     }
 
     let read_archive = read(&archive.unwrap()).unwrap();
+    let part = multipart::Part::bytes(read_archive);
+    // this looks wierd, but I did not feel like dealing with lifetimes
+    let file = multipart::Form::new().part(path.to_str().unwrap().to_string(), part);
 
     // Send the file to the Server
     let client = Client::new();
     let response = client
-        .post("http://localhost:8000/collections/")
-        .body(read_archive)
-        .header("Authorization", format!("Bearer {}", token))
+        .post("http://localhost:8000/collections")
+        .bearer_auth(token.to_string())
+        .multipart(file)
         .send()
         .await;
 
     match response {
-        Ok(res) => {
-            println!("File sent successfully");
-            let json: FileResponse = res.json().await.unwrap();
-            println!("UUID: {}", json.uuid);
+        Ok(res) => match res.status().as_u16() {
+            401 => println!("Failed to authenticate"),
+            _=> {
+                println!("File sent successfully");
+                // let json: FileResponse = res.json().await.unwrap();
+                // println!("UUID: {}", json.uuid);
+            }
+        },
+        Err(res) => {
+            eprintln!("Failed to send file");
+            eprintln!("{}", res.to_string());
         }
-        Err(_) => eprintln!("Failed to send file"),
     }
 }

@@ -1,36 +1,12 @@
-use crate::blockchain::save_certificate;
-use crate::communication::send_file;
-use crate::util::{hash_file, save_file, traverse_directory};
-use clap::Parser;
-use dotenv_codegen::dotenv;
+use std::io::stdin;
 use std::path::Path;
 use std::process::exit;
 use std::thread::available_parallelism;
-use std::io::stdin;
-
-mod blockchain;
-mod communication;
-mod test;
-mod util;
-
-#[cxx::bridge]
-pub mod ffi {
-    unsafe extern "C++" {
-        include!("disa_cli/sig_lib/library.h");
-
-        // file_name is the path of the file that contains the hashes
-        // sig_file is the path of the file that will contain the signature
-        fn sig_doc(
-            file_name: &str,
-            sig_file: &str,
-            sign: bool,
-            cmd: bool,
-            basic_auth_user: &str,
-            basicAuthPassword: &str,
-            applicationID: &str,
-        ) -> i64;
-    }
-}
+use clap::Parser;
+use dotenv_codegen::dotenv;
+use disa_lib::ffi::sig_doc;
+use disa_lib::util::{traverse_directory, hash_file, save_file};
+use disa_lib::communication::send_file;
 
 /// CLI to send files to DiSA
 #[derive(Parser, Debug)]
@@ -108,7 +84,7 @@ async fn main() {
     let basic_auth_password = dotenv!("BASIC_AUTH_PASS");
     let application_id = dotenv!("APPLICATION_ID");
 
-    let err = ffi::sig_doc(
+    let err = sig_doc(
         &hash_json,
         &hash_json.replace(".json", ".asics"),
         mode == "production",
@@ -128,6 +104,7 @@ async fn main() {
         if bearer_token == "" {
             println!("No valid token provided, please input one bellow.");
             stdin().read_line(&mut bearer_token);
+            panic!("This is broken, provide a token via the -b flag");
         }
 
         // save_certificate(&hash_json);

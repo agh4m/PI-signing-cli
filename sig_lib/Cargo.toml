@@ -1,16 +1,13 @@
 [package]
-name = "disa_cli"
-version = "1.0.0-alpha.1"
+name = "disa_lib"
+version = "1.0.0-alpha.2"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-clap = { version = "4.5.2", features = ["derive"] }
 cxx = { version = "1.0.119", features = ["c++20"] }
-dotenv = "0.15.0"
-dotenv_codegen = "0.15.0"
-reqwest = { version = "0.12.3", features = ["json"] }
+reqwest = { version = "0.12.3", features = ["json", "multipart", "blocking"] }
 serde = { version = "1.0.197", features = ["derive"] }
 serde_json = "1.0.114"
 sha2 = "0.10.8"

@@ -1,0 +1,2 @@
+sig_lib/lib/rust/** linguist-vendored
+sig_lib/lib/include/** linguist-vendored

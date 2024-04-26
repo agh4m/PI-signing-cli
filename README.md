@@ -1,17 +1,24 @@
-# DiSA CLI tool
+# DiSA ~~CLI tool~~ Desktop Client
 
-This is a command line tool for the DiSA project.
+~~This is a command line tool for the DiSA project.~~
+This repo now hosts a monorepo that includes the cli, a gui and a shared library all in their own crates.
 It indexes a directory of files and generates an hash for each file, allowing you to sign the hash and store it in a blockchain, and send the files to a remote server.
 
 ## Development
 
-This project is developed in Rust, using the [clap](https://docs.rs/clap/latest/clap/index.html) library for the command line interface.
-It also uses an adapter for Autentication.Gov to sign the hashes, written in C++.
-The adapter is a shared library that is loaded by the Rust code, and compiled by Cargo via gcc.
+Part of this project is developed in Rust, using the [clap](https://docs.rs/clap/latest/clap/index.html) library for the command line interface.
+The gui development is done with [Tauri](https://tauri.app/), which was choosen for its use of web technologies and their necessity when interacting with the Autenticacao.gov auth api.
 
-It is recomended to have both C++ and Rust tooling for development.
+It also uses an adapter for Autentication.Gov to sign the hashes, written in C++.
+The adapter is a shared library that is loaded by the Rust code, and compiled by Cargo via gcc. This is subject to change due to cross compilation [issues with windows](https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fwallpapercave.com%2Fwp%2Fwp5338276.jpg&f=1&nofb=1&ipt=dd97c7215cf26cab8becadbd60b0e5065d668f6223a2c2dcb6904195f2a2c24b&ipo=images).
+
+It is recomended to have both C++ and Rust tooling for development, as well as Bun or Npm for the gui develpment.
 
 ### Dotenv
+
+```
+This section only applies to the cli for now.
+```
 
 This project uses a `.env` file to store the environment variables.
 
@@ -26,7 +33,6 @@ APPLICATION_ID=<application_id>
 
 The `RELEASE_MODE` variable is used to determine if a signature is produced or not. If set to `production`, the documents are signed, however, if set to `development`, the signing step is skipped.
 `BASIC_AUTH_USER`, `BASIC_AUTH_PASS` and `APPLICATION_ID` are used to authenticate with the CMD server.
-
 
 ### Building
 
@@ -59,6 +65,10 @@ Similarly to the build command, you can use the `--release` flag, before any oth
 
 #### Available arguments
 
+```
+This section only applies to the cli, as should be obvious.
+```
+
 The available arguments are:
 ```
 -p --path: The path to the directory to index (Required)
@@ -68,11 +78,16 @@ The available arguments are:
 -a --archive_files: Send the file to the remote server (Optional) (Default: true)
   -to not send the files to the remote server, add this flag
 -t --threads: The number of threads to use (Optional) (Default: half of the available cores)
+-b --bearer_token: Pass the autheticaton token.
 -h --help: Show the help message (Exclusive)
 -V --version: Show the version of the tool (Exclusive)
 ```
 
 ## Testing
+
+```
+Only the shared library has tests for now.
+```
 
 Whilst there are some tests, these only test certain functions of the project.
 Some functions were deemed too simple to test, or out of the scope of what should be tested (e.g. functions that only call other functions, or functions that call libraries).
@@ -85,7 +100,7 @@ cargo test
 
 ## Installation
 
-Precompiled binaries for Windows and Linux are available in the releases tab.
+Precompiled binaries for Windows and Linux are available in the releases tab, these are outdated however and do not intereact with the server, nor do they produce a valid signature.
 
 
 ## FAQ

@@ -5,14 +5,14 @@
 </script>
 
 <div
-	class="flex h-[500px] w-96 flex-col items-center justify-center gap-5 rounded-xl bg-zinc-800 p-10 opacity-50 shadow-xl"
+	class="flex h-[500px] w-96 flex-col items-center justify-center gap-5 rounded-xl bg-zinc-800 p-10 shadow-xl shadow-zinc-950"
 >
 	<h1 class="text-4xl font-bold text-white">Sign in to DiSA</h1>
 	<p class="mb-8 text-white">Start uploading your files today.</p>
 	<Input class="w-80 text-white" bind:value />
 	<Input class="w-80 text-white" bind:value type="password" />
 	<Button
-		class="shadown-md h-10 w-80 bg-zinc-700 font-semibold"
+		class="shadown-md h-10 w-80 bg-zinc-700 font-semibold shadow-zinc-950"
 		on:click={() => (window.location.href = '/dashboard')}
 	>
 		Login

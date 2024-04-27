@@ -5,8 +5,9 @@
 </script>
 
 <div class="absolute left-0 flex h-screen w-52 flex-col gap-4 bg-zinc-900 p-5">
-	<Button class="bg-zinc-800 font-semibold shadow shadow-zinc-950">Upload Documents</Button>
-	<Button class="bg-zinc-800 font-semibold shadow shadow-zinc-950">Download Documents</Button>
+	<Button class="bg-zinc-800 font-semibold shadow shadow-zinc-950" on:click={() => {window.location.href = "/dashboard/"}}>Upload Documents</Button>
+	<Button class="bg-zinc-800 font-semibold shadow shadow-zinc-950" on:click={() => {window.location.href = "/dashboard/download"}}>Download Documents</Button>
+	<Button class="bg-zinc-800 font-semibold shadow shadow-zinc-950" on:click={() => {window.location.href = "/dashboard/verify"}}>Verify Authenticity</Button>
 	<div class="flex-grow"></div>
 	<DropdownMenu.Root>
 		<DropdownMenu.Trigger class="flex items-center gap-1 text-zinc-300">

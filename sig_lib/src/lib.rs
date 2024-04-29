@@ -1,7 +1,6 @@
 pub mod blockchain;
 pub mod communication;
 pub mod util;
-mod test;
 
 #[cxx::bridge]
 pub mod ffi {

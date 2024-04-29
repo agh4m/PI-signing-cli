@@ -112,7 +112,7 @@ pub fn save_file(documents: &Vec<Document>, path: &str) -> Option<String> {
         return None;
     };
 
-    let mut save_path: String = "".to_string();
+    let save_path: String;
 
     if Path::new(path).is_dir() {
         save_path = format!("{}/hashes.json", path.trim().trim_end_matches('/'));
@@ -135,7 +135,10 @@ pub fn save_file(documents: &Vec<Document>, path: &str) -> Option<String> {
 }
 
 pub fn create_tar(path: &Path, save_location: &Path) -> Option<String> {
-    let save_path = format!("{}/archive.tar", save_location.to_str().unwrap().trim_end_matches('/'));
+    let save_path = format!(
+        "{}/archive.tar",
+        save_location.to_str().unwrap().trim_end_matches('/')
+    );
 
     let mut archive = Builder::new(Vec::new());
 
@@ -149,7 +152,8 @@ pub fn create_tar(path: &Path, save_location: &Path) -> Option<String> {
     }
 
     if path.is_file() {
-        let Ok(_) = archive.append_file(path.file_name().unwrap(), &mut File::open(path).unwrap()) else {
+        let Ok(_) = archive.append_file(path.file_name().unwrap(), &mut File::open(path).unwrap())
+        else {
             eprintln!("Could not append file to archive");
             return None;
         };
@@ -158,8 +162,12 @@ pub fn create_tar(path: &Path, save_location: &Path) -> Option<String> {
     let hashes_path = format!("{}/hashes.json", save_location.to_str().unwrap());
     let asics_path = format!("{}/hashes.asics", save_location.to_str().unwrap());
 
-    archive.append_file("hashes.json", &mut File::open(hashes_path).unwrap()).unwrap();
-    archive.append_file("hashes.asics", &mut File::open(asics_path).unwrap()).unwrap();
+    archive
+        .append_file("hashes.json", &mut File::open(hashes_path).unwrap())
+        .unwrap();
+    archive
+        .append_file("hashes.asics", &mut File::open(asics_path).unwrap())
+        .unwrap();
 
     let Ok(archive) = archive.into_inner() else {
         eprintln!("Could not create archive");
@@ -177,4 +185,48 @@ pub fn create_tar(path: &Path, save_location: &Path) -> Option<String> {
     };
 
     return Some(save_path.to_string());
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::util::create_tar;
+    use crate::util::hash_file;
+    use crate::util::traverse_directory;
+    use std::fs::File;
+    use std::path::Path;
+
+    #[test]
+    fn test_traverse_directory_1t() {
+        let path = Path::new("./test_files");
+        let files = traverse_directory(path, 1);
+        assert_eq!(files.len(), 6);
+    }
+
+    #[test]
+    fn test_traverse_directory_4t() {
+        let path = Path::new("./test_files");
+        let files = traverse_directory(path, 4);
+        assert_eq!(files.len(), 6);
+    }
+
+    #[test]
+    fn test_hash_file() {
+        let path = Path::new("../../LICENSE");
+        let hash = hash_file(path).unwrap().hash;
+        assert_eq!(hash.len(), 64);
+        assert_eq!(
+            hash,
+            "dc0030b6ebb9fc9b29f658c4c69d58599c1b5edd66d3b7ce7940821aa6a43e8a"
+        );
+    }
+
+    #[test]
+    fn test_create_tar() {
+        // This test assumes an existing manifest with its signature
+        let path = Path::new("./test_files");
+        let save_location = Path::new("./");
+        let arch = create_tar(&path, &save_location);
+        assert_eq!(arch.is_some(), true);
+        assert!(File::open(arch.unwrap()).is_ok());
+    }
 }

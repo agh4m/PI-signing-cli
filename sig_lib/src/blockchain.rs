@@ -1,4 +1,4 @@
-use ethabi::{Function, Token};
+use ethabi::{Function, Token,Contract};
 use futures::executor::block_on;
 use serde_json::{from_str, Result};
 use std::fs::read_to_string;
@@ -6,6 +6,7 @@ use web3::signing::SecretKey;
 use web3::transports::Http;
 use web3::types::{Address, Bytes, TransactionParameters, TransactionReceipt, H256};
 use web3::Web3;
+use std::fs::File;
 
 pub async fn save_certificate(
     sig_hash: &str,
@@ -20,12 +21,9 @@ pub async fn save_certificate(
     let transport = Http::new(&node_url).unwrap();
     let web3 = Web3::new(transport);
 
-    let abi_json = read_to_string("./abi.json").expect("Unable to read abi file");
-    let contract_abi: Vec<Function> = from_str(&abi_json).unwrap();
-    let function = contract_abi
-        .iter()
-        .find(|f| f.name == "storeHash")
-        .expect("Function not found in ABI");
+    let abi_file = File::open("./abi.json").unwrap();
+    let contract = Contract::load(abi_file).unwrap();
+    let function = contract.function("storeHash").unwrap();
 
     let mut sig_hash_bytes = sig_hash.as_bytes().to_vec();
     sig_hash_bytes.resize(32, 0);

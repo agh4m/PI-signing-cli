@@ -1,12 +1,12 @@
-use std::io::stdin;
+use clap::Parser;
+use disa_lib::blockchain::save_certificate;
+use disa_lib::communication::send_file;
+use disa_lib::ffi::sig_doc;
+use disa_lib::util::{hash_file, save_file, traverse_directory};
+use dotenv_codegen::dotenv;
 use std::path::Path;
 use std::process::exit;
 use std::thread::available_parallelism;
-use clap::Parser;
-use dotenv_codegen::dotenv;
-use disa_lib::ffi::sig_doc;
-use disa_lib::util::{traverse_directory, hash_file, save_file};
-use disa_lib::communication::send_file;
 
 /// CLI to send files to DiSA
 #[derive(Parser, Debug)]
@@ -35,6 +35,10 @@ struct Args {
     /// authentication token
     #[arg(short, long, default_value = "")]
     bearer_token: String,
+
+    /// skip all steps, send only to blockchain, path must be a file with this flag
+    #[arg(short, long)]
+    only_blockchain: bool,
 }
 
 #[tokio::main]
@@ -48,7 +52,8 @@ async fn main() {
     let cmd = args.cmd;
     let send = !args.archive_file;
     let mut threads = args.threads;
-    let mut bearer_token = args.bearer_token;
+    let bearer_token = args.bearer_token;
+    let blockchain = args.only_blockchain;
 
     if threads == 0 {
         threads = available_parallelism().unwrap().get() / 2;
@@ -61,7 +66,7 @@ async fn main() {
 
     let mut documents = Vec::new();
 
-    if path.is_dir() {
+    if path.is_dir() && !blockchain {
         documents = traverse_directory(&path, threads);
     }
 
@@ -74,40 +79,50 @@ async fn main() {
         }
     }
 
-    let Some(hash_json) = save_file(&documents, &save_location.to_str().unwrap()) else {
-        eprintln!("Could not save file: {:?}", path);
-        exit(1);
-    };
-
     // Load environment variables needed for CMD
     let basic_auth_user = dotenv!("BASIC_AUTH_USER");
     let basic_auth_password = dotenv!("BASIC_AUTH_PASS");
     let application_id = dotenv!("APPLICATION_ID");
 
-    let err = sig_doc(
-        &hash_json,
-        &hash_json.replace(".json", ".asics"),
-        mode == "production",
-        cmd,
-        basic_auth_user,
-        basic_auth_password,
-        application_id,
-    );
-
-    if err != 0 {
-        eprintln!("Error signing document: 0x{:x}", err);
+    let Some(hash_json) = save_file(&documents, &save_location.to_str().unwrap()) else {
+        eprintln!("Could not save file: {:?}", path);
         exit(1);
+    };
+    if !blockchain {
+        let err = sig_doc(
+            &hash_json,
+            &hash_json.replace(".json", ".asics"),
+            mode == "production",
+            cmd,
+            basic_auth_user,
+            basic_auth_password,
+            application_id,
+        );
+        if err != 0 {
+            eprintln!("Error signing document: 0x{:x}", err);
+            exit(1);
+        }
+        println!("Signed : {:?}", hash_json);
     }
-    println!("Signed : {:?}", hash_json);
+
+    let contract_address = dotenv!("CONTRACT_ADDRESS");
+    let node_url = dotenv!("NODE_URL");
+    let private_key = dotenv!("PRIVATE_KEY");
+    let wallet_address = dotenv!("WALLET_ADDRESS");
 
     if send {
-        if bearer_token == "" {
-            println!("No valid token provided, please input one bellow.");
-            stdin().read_line(&mut bearer_token);
-            panic!("This is broken, provide a token via the -b flag");
-        }
+        let address = save_certificate(
+            &hash_json,
+            node_url,
+            contract_address,
+            private_key,
+            wallet_address,
+        )
+        .await
+        .unwrap_or_else(|_| "".to_string());
 
-        // save_certificate(&hash_json);
+        println!("blockchain address {}", address);
+
         send_file(&path, &save_location, &bearer_token).await;
     }
 }

@@ -123,6 +123,8 @@ async fn main() {
 
         println!("blockchain address {}", address);
 
-        send_file(&path, &save_location, &bearer_token).await;
+        if !blockchain {
+            send_file(&path, &save_location, &bearer_token).await;
+        }
     }
 }

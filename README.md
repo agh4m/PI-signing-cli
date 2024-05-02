@@ -1,26 +1,43 @@
-# DiSA ~~CLI tool~~ Desktop Client
+# DiSA Desktop Client
 
-~~This is a command line tool for the DiSA project.~~
 This repo now hosts a monorepo that includes the cli, a gui and a shared library all in their own crates.
 It indexes a directory of files and generates an hash for each file, allowing you to sign the hash and store it in a blockchain, and send the files to a remote server.
+
+### Structure
+
+This repo has the following structure
+```
+cli        Source for the cli crate
+sig_lib    Source for the shared library
+src-tauri  Source for the tauri rust files
+src        Source for the interface
+```
+
+To run this project you want to either run from within the cli or the src-tauri folder. Instructions once you are in one of these folders are bellow.
 
 ## Development
 
 Part of this project is developed in Rust, using the [clap](https://docs.rs/clap/latest/clap/index.html) library for the command line interface.
 The gui development is done with [Tauri](https://tauri.app/), which was choosen for its use of web technologies and their necessity when interacting with the Autenticacao.gov auth api.
 
-It also uses an adapter for Autentication.Gov to sign the hashes, written in C++.
+It also has an adapter for the [Autentication.Gov](https://github.com/amagovpt/autenticacao.gov) lib used to sign the manifest, written in C++.
+This has been tested with both version 3.11 and version 3.12 of that library.
+
+`Note: Despite version 3.12 supporting the new contactless cards, these are not supported by this project`
+
 The adapter is a shared library that is loaded by the Rust code, and compiled by Cargo via gcc. This is subject to change due to cross compilation [issues with windows](https://external-content.duckduckgo.com/iu/?u=https%3A%2F%2Fwallpapercave.com%2Fwp%2Fwp5338276.jpg&f=1&nofb=1&ipt=dd97c7215cf26cab8becadbd60b0e5065d668f6223a2c2dcb6904195f2a2c24b&ipo=images).
 
-It is recomended to have both C++ and Rust tooling for development, as well as Bun or Npm for the gui develpment.
+It is needed to have both C++ and Rust tooling for development, as well as Bun or Node.JS for the gui develpment.
 
 ### Dotenv
 
 ```
-This section only applies to the cli for now.
+This section only applies to the cli for now, the tauri app will eventually load the same .env.
 ```
 
 This project uses a `.env` file to store the environment variables.
+
+This file should be placed on the root of either the cli or gui app `(src-tauri)`.
 
 The following variables are required:
 
@@ -29,10 +46,19 @@ RELEASE_MODE=production | development
 BASIC_AUTH_USER=<username>
 BASIC_AUTH_PASS=<password>
 APPLICATION_ID=<application_id>
+CONTRACT_ADDRESS=<contract_address>
+NODE_URL=<node_url for the eth node where the contract is>
+PRIVATE_KEY=<private_key for the wallet>
+WALLET_ADDRESS=<the wallet addresss>
 ```
 
 The `RELEASE_MODE` variable is used to determine if a signature is produced or not. If set to `production`, the documents are signed, however, if set to `development`, the signing step is skipped.
+
 `BASIC_AUTH_USER`, `BASIC_AUTH_PASS` and `APPLICATION_ID` are used to authenticate with the CMD server.
+
+The last four variables are used to connect with the blockchain to save the hash of the manifest, providing the proof of the documents existing.
+
+An abi.json file is also required as it describes the contract. This file should be placed on the same folder as the .env.
 
 ### Building
 
@@ -81,6 +107,7 @@ The available arguments are:
 -b --bearer_token: Pass the autheticaton token.
 -h --help: Show the help message (Exclusive)
 -V --version: Show the version of the tool (Exclusive)
+-o --only_blockchain: Special tag used to skip all steps, except the upload to the blockchain.
 ```
 
 ## Testing
@@ -111,6 +138,11 @@ Make sure you have the Autentication.Gov SDK installed and a suitable C++ compil
 On Linux systems, this should be gcc, on windows it should be MSVC. Visual Studio might also be needed.
 
 On Windows some aditional configuration might be required, as the SDK is not installed in a path that is automatically detected by MSVC.
+
+> I get a linking with cc failed that mentions pteidlib
+
+Make sure you have the autenticao.gov lib instaled.
+The instructions for how to do so are found [here](https://github.com/amagovpt/autenticacao.gov).
 
 > Cannot detect card readers
 

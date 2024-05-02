@@ -4,7 +4,7 @@ use std::fs::read_to_string;
 use web3::contract::{Contract, Options};
 use web3::signing::SecretKey;
 use web3::transports::Http;
-use web3::types::{Address, TransactionParameters,Bytes,H256,TransactionReceipt};
+use web3::types::{Address, Bytes, TransactionParameters, TransactionReceipt, H256};
 use web3::Web3;
 
 pub async fn save_certificate(
@@ -33,6 +33,7 @@ pub async fn save_certificate(
             Options::default(),
         )
         .await;
+
     let tx = TransactionParameters {
         to: Some(contract_address),
         gas: 100000.into(),
@@ -50,18 +51,20 @@ pub async fn save_certificate(
     return Ok(tx_hash.unwrap().to_string());
 }
 
-pub async fn get_certificate_hash(
-    node_url: &str,
-    tx_hash: &str
-) -> Result<String> {
+pub async fn get_certificate_hash(node_url: &str, tx_hash: &str) -> Result<String> {
     let transport = Http::new(&node_url).unwrap();
     let web3 = Web3::new(transport);
 
     let tx_hash: H256 = tx_hash.parse().unwrap();
-    let receipt:TransactionReceipt=web3.eth().transaction_receipt(tx_hash).await.unwrap().unwrap();
-    let log=&receipt.logs[0];
-    let stored_hash:&Bytes=&log.data;
-    return Ok(format!("{:x?}",stored_hash));
+    let receipt: TransactionReceipt = web3
+        .eth()
+        .transaction_receipt(tx_hash)
+        .await
+        .unwrap()
+        .unwrap();
+    let log = &receipt.logs[0];
+    let stored_hash: &Bytes = &log.data;
+    return Ok(format!("{:x?}", stored_hash));
 }
 
 #[cfg(test)]

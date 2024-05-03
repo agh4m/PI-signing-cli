@@ -24,10 +24,8 @@ pub async fn save_certificate(
     let abi_file = File::open("./abi.json")?;
     let contract = Contract::load(abi_file)?;
     let function = contract.function("storeHash")?;
-
-    let mut sig_hash_bytes = sig_hash.as_bytes().to_vec();
-    sig_hash_bytes.resize(32, 0);
-    let arg: Token = Token::FixedBytes(sig_hash_bytes);
+    
+    let arg: Token = Token::String(sig_hash.to_string());
 
     let encoded_call = function.encode_input(&[arg])?;
 

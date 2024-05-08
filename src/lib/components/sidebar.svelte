@@ -16,9 +16,9 @@
 		</Button>
 	</a>
 	<a href="/dashboard/verify" data-sveltekit-preload-data="hover" class="w-44">
-		<Button class="bg-zinc-800 font-semibold shadow shadow-zinc-950 w-full">
-            Verify Authenticity
-        </Button>
+		<Button class="w-full bg-zinc-800 font-semibold shadow shadow-zinc-950">
+			Verify Authenticity
+		</Button>
 	</a>
 	<div class="flex-grow"></div>
 	<DropdownMenu.Root>

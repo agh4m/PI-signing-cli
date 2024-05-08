@@ -39,6 +39,7 @@
   },
   "type": "module",
   "dependencies": {
+    "@tauri-apps/api": "^1.5.4",
     "bits-ui": "^0.21.5",
     "clsx": "^2.1.1",
     "svelte-radix": "^1.1.0",

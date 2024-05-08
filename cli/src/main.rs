@@ -66,7 +66,7 @@ async fn main() {
 
     let mut documents = Vec::new();
 
-    if path.is_dir() && !blockchain {
+    if path.is_dir() {
         documents = traverse_directory(&path, threads);
     }
 
@@ -88,6 +88,12 @@ async fn main() {
         eprintln!("Could not save file: {:?}", path);
         exit(1);
     };
+
+    let Some(hashed_manifest) = hash_file(Path::new(&hash_json)) else {
+        eprintln!("Could not hash file: {:?}", hash_json);
+        exit(1);
+    };
+
     if !blockchain {
         let err = sig_doc(
             &hash_json,
@@ -112,7 +118,7 @@ async fn main() {
 
     if send {
         let address = save_certificate(
-            &hash_json,
+            &hashed_manifest.hash,
             node_url,
             contract_address,
             private_key,

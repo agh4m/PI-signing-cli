@@ -211,7 +211,7 @@ mod tests {
 
     #[test]
     fn test_hash_file() {
-        let path = Path::new("../../LICENSE");
+        let path = Path::new("../LICENSE");
         let hash = hash_file(path).unwrap().hash;
         assert_eq!(hash.len(), 64);
         assert_eq!(

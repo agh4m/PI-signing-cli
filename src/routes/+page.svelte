@@ -1,17 +1,64 @@
 <script>
 	import Button from '$lib/components/ui/button/button.svelte';
 	import Input from '$lib/components/ui/input/input.svelte';
-	let value = '';
+	import { invoke } from '@tauri-apps/api';
+
+	let password = '';
+	let username = '';
+
+	async function login() {
+		let err = document.getElementById('err');
+		if (err === null) {
+			alert('How did you get here?');
+			return;
+		}
+		if (err.classList.contains('flex')) {
+			err.classList.remove('flex');
+			err.classList.add('hidden');
+		}
+
+		console.log(password, username);
+		if (username === '' || password === '' || username === undefined || password === undefined) {
+			err.classList.remove('hidden');
+			err.classList.add('flex');
+			err.innerHTML = 'Please enter an username, password';
+			return;
+		}
+
+		await invoke('login_user', { username: username, password: password })
+			.then((token) => {
+				console.log(token);
+				if (token === 'Could not login') {
+					err.classList.remove('hidden');
+					err.classList.add('flex');
+					err.innerHTML = 'Login failed, try logging in again.';
+					return;
+				}
+				localStorage.setItem('token', token);
+				window.location.href = '/dashboard';
+			})
+			.catch(() => {
+				err.classList.remove('hidden');
+				err.classList.add('flex');
+				err.innerHTML = 'Login failed, try logging in again.';
+			});
+	}
 </script>
 
 <div
 	class="flex h-[500px] w-96 flex-col items-center justify-center gap-5 rounded-xl bg-zinc-800 p-10 shadow-xl shadow-zinc-950"
 >
+	<div
+		class="hidden w-full items-center justify-center rounded-xl border border-red-500 p-5 text-red-500"
+		id="err"
+	>
+		Login failed, try logging in again.
+	</div>
 	<h1 class="text-4xl font-bold text-white">Sign in to DiSA</h1>
 	<p class="mb-8 text-white">Start uploading your files today.</p>
-	<Input class="w-80 text-white" bind:value placeholder="Email" type="text" />
-	<Input class="w-80 text-white" bind:value type="password" placeholder="Password" />
-	<a href="/dashboard" data-sveltekit-preload-data="hover">
-		<Button class="shadown-md h-10 w-80 bg-zinc-700 font-semibold shadow-zinc-950">Login</Button>
-	</a>
+	<Input class="w-80 text-white" bind:value={username} placeholder="Email" type="text" />
+	<Input class="w-80 text-white" bind:value={password} type="password" placeholder="Password" />
+	<Button class="shadown-md h-10 w-80 bg-zinc-700 font-semibold shadow-zinc-950" on:click={login}
+		>Login</Button
+	>
 </div>

@@ -1,7 +1,7 @@
 use crate::util::create_tar;
-use crate::util::Document;
 use reqwest::{get, multipart, Client, Error};
 use serde::Deserialize;
+use serde_json::json;
 use std::fs::read;
 use std::path::Path;
 use std::process::exit;
@@ -16,11 +16,6 @@ struct FileResponse {
     message: String,
     uuid: String,
 }
-
-// #{derive(Debug, Serialize, Deserialize)]
-// struct FileBody {
-//     manifest_hash
-// }
 
 pub async fn ping_server() -> Result<bool, Error> {
     let res = get("http://localhost:8000").await?;
@@ -66,7 +61,7 @@ pub async fn send_file(path: &Path, save_location: &Path, token: &str) {
     match response {
         Ok(res) => match res.status().as_u16() {
             401 => println!("Failed to authenticate"),
-            _=> {
+            _ => {
                 println!("File sent successfully");
                 // let json: FileResponse = res.json().await.unwrap();
                 // println!("UUID: {}", json.uuid);
@@ -75,6 +70,37 @@ pub async fn send_file(path: &Path, save_location: &Path, token: &str) {
         Err(res) => {
             eprintln!("Failed to send file");
             eprintln!("{}", res.to_string());
+        }
+    }
+}
+
+pub async fn login(username: String, password: String) -> Option<String> {
+    let body = json!({
+        "username": username,
+        "password": password
+    });
+
+    let client = Client::new();
+    let response = client
+        .post("http://localhost:8000/user/users/login/")
+        .body(body.to_string())
+        .send()
+        .await;
+    println!("here");
+
+    match response {
+        Ok(res) => match res.status().as_u16() {
+            200 => {
+                println!("200");
+                return Some(res.json().await.unwrap());
+            }
+            _ => {
+                println!("{}", res.text().await.unwrap());
+                return None;
+            }
+        },
+        Err(_) => {
+            return None;
         }
     }
 }

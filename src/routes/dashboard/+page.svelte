@@ -50,7 +50,7 @@
 		</div>
 	</div>
 	<div class="flex flex-col py-10">
-		<Label for="fileInput" class="mb-1 text-white">Select file or folder to upload.</Label>
+		<Label for="fileInput" class="mb-1 text-white"e>Select file or folder to upload.</Label>
 		<Input id="fileInput" type="file" webkitdirectory directory multiple class="text-white" />
 		<div class="flex-grow"></div>
 		<Button class="w-full">Upload files</Button>

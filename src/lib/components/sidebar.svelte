@@ -10,11 +10,6 @@
 			Upload Documents
 		</Button>
 	</a>
-	<a href="/dashboard/download" data-sveltekit-preload-data="hover" class="w-44">
-		<Button class="w-full bg-zinc-800 font-semibold shadow shadow-zinc-950">
-			Download Documents
-		</Button>
-	</a>
 	<a href="/dashboard/verify" data-sveltekit-preload-data="hover" class="w-44">
 		<Button class="w-full bg-zinc-800 font-semibold shadow shadow-zinc-950">
 			Verify Authenticity

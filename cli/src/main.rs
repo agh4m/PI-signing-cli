@@ -130,7 +130,7 @@ async fn main() {
         println!("blockchain address {}", address);
 
         if !blockchain {
-            send_file(&path, &save_location, &bearer_token).await;
+            send_file(&path, &save_location, &bearer_token, &address).await;
         }
     }
 }

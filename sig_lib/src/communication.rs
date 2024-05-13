@@ -40,31 +40,36 @@ pub async fn ping_server() -> Result<bool, Error> {
     return Ok(false);
 }
 
-pub async fn send_file(path: &Path, save_location: &Path, token: &str) {
+pub async fn send_file(path: &Path, save_location: &Path, token: &str, address: &str) {
     let res = ping_server().await;
     if res.is_err() || !res.unwrap() {
         eprintln!("Server is not available, exiting...");
         exit(1);
     }
 
-    let archive = create_tar(&path, &save_location);
+    let archive = create_tar(&path, &save_location).unwrap();
 
     println!("Sending file to server");
 
-    if archive.is_none() {
-        eprintln!("Failed to create archive");
-        exit(1);
-    }
+    let read_archive = read(&archive).unwrap();
 
-    let read_archive = read(&archive.unwrap()).unwrap();
-    let part = multipart::Part::bytes(read_archive);
+    let part = multipart::Part::bytes(read_archive)
+        .file_name(archive)
+        .mime_str("application/x-tar")
+        .unwrap();
+
+    let address_part = multipart::Part::text(address.to_string());
+
     // this looks wierd, but I did not feel like dealing with lifetimes
-    let file = multipart::Form::new().part(path.to_str().unwrap().to_string(), part);
+    let file = multipart::Form::new()
+        // .part("manifest_hash", man_hash_part)
+        .part("transaction_address", address_part)
+        .part("file", part);
 
     // Send the file to the Server
     let client = Client::new();
     let response = client
-        .post("http://localhost:8000/collections")
+        .post("http://localhost:8000/collections/")
         .bearer_auth(token.to_string())
         .multipart(file)
         .send()
@@ -72,9 +77,11 @@ pub async fn send_file(path: &Path, save_location: &Path, token: &str) {
 
     match response {
         Ok(res) => match res.status().as_u16() {
+            200 => println!("File sent successfully"),
             401 => println!("Failed to authenticate"),
+            422 => println!("{}", res.text().await.unwrap()),
             _ => {
-                println!("File sent successfully");
+                println!("{}", res.status());
                 // let json: FileResponse = res.json().await.unwrap();
                 // println!("UUID: {}", json.uuid);
             }

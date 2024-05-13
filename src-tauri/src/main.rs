@@ -31,9 +31,8 @@ async fn login_user(
 
     match token {
         Some(t) => {
-            println!("{}", t);
-            state.lock().unwrap().set_token(&t);
-            return Ok(t);
+            state.lock().unwrap().set_token(&t.access_token);
+            return Ok("Loged in".to_string());
         }
         None => return Err("Could not login".into()),
     }

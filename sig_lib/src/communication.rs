@@ -1,7 +1,7 @@
 use crate::util::create_tar;
 use reqwest::{get, multipart, Client, Error};
 use serde::Deserialize;
-use serde_json::json;
+use std::fmt::Display;
 use std::fs::read;
 use std::path::Path;
 use std::process::exit;
@@ -12,9 +12,21 @@ struct Response {
 }
 
 #[derive(Debug, Deserialize)]
-struct FileResponse {
-    message: String,
-    uuid: String,
+pub struct FileResponse {
+    pub message: String,
+    pub uuid: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct LoginResponse {
+    pub access_token: String,
+    pub token_type: String,
+}
+
+impl Display for LoginResponse {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.to_string().fmt(f)
+    }
 }
 
 pub async fn ping_server() -> Result<bool, Error> {
@@ -74,25 +86,24 @@ pub async fn send_file(path: &Path, save_location: &Path, token: &str) {
     }
 }
 
-pub async fn login(username: String, password: String) -> Option<String> {
-    let body = json!({
-        "username": username,
-        "password": password
-    });
+pub async fn login(username: String, password: String) -> Option<LoginResponse> {
+    let username_part = multipart::Part::text(username);
+    let password_part = multipart::Part::text(password);
+    let form = multipart::Form::new()
+        .part("username".to_string(), username_part)
+        .part("password".to_string(), password_part);
 
     let client = Client::new();
     let response = client
-        .post("http://localhost:8000/user/users/login/")
-        .body(body.to_string())
+        .post("http://localhost:8000/users/login/")
+        .multipart(form)
         .send()
         .await;
-    println!("here");
 
     match response {
         Ok(res) => match res.status().as_u16() {
             200 => {
-                println!("200");
-                return Some(res.json().await.unwrap());
+                return Some(res.json::<LoginResponse>().await.unwrap());
             }
             _ => {
                 println!("{}", res.text().await.unwrap());

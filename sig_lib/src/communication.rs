@@ -40,7 +40,12 @@ pub async fn ping_server() -> Result<bool, Error> {
     return Ok(false);
 }
 
-pub async fn send_file(path: &Path, save_location: &Path, token: &str, address: &str) {
+pub async fn send_file(
+    path: &Path,
+    save_location: &Path,
+    token: &str,
+    address: &str,
+) -> Result<(), String> {
     let res = ping_server().await;
     if res.is_err() || !res.unwrap() {
         eprintln!("Server is not available, exiting...");
@@ -77,19 +82,10 @@ pub async fn send_file(path: &Path, save_location: &Path, token: &str, address: 
 
     match response {
         Ok(res) => match res.status().as_u16() {
-            200 => println!("File sent successfully"),
-            401 => println!("Failed to authenticate"),
-            422 => println!("{}", res.text().await.unwrap()),
-            _ => {
-                println!("{}", res.status());
-                // let json: FileResponse = res.json().await.unwrap();
-                // println!("UUID: {}", json.uuid);
-            }
+            200 => return Ok(()),
+            _ => return Err(res.status().to_string()),
         },
-        Err(res) => {
-            eprintln!("Failed to send file");
-            eprintln!("{}", res.to_string());
-        }
+        Err(res) => return Err(res.to_string()),
     }
 }
 
@@ -135,8 +131,8 @@ pub async fn ping(token: &str) -> Option<&str> {
         Ok(res) => match res.status().as_u16() {
             200 => {
                 assert_eq!(res.text().await.unwrap(), "\"pong\"");
-                return Some("Pong")
-            },
+                return Some("Pong");
+            }
             _ => return None,
         },
         _ => return None,

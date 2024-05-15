@@ -3,6 +3,7 @@ use serde_json;
 use sha2::{Digest, Sha256};
 use std::collections::VecDeque;
 use std::fmt::Debug;
+use std::fs;
 use std::fs::File;
 use std::io::{self, Write};
 use std::path::{Path, PathBuf};
@@ -134,29 +135,22 @@ pub fn save_file(documents: &Vec<Document>, path: &str) -> Option<String> {
     return Some(save_path);
 }
 
-pub fn create_tar(path: &Path, save_location: &Path) -> Option<String> {
+pub fn create_tar(path: &Path, save_location: &Path) -> Result<String, std::io::Error> {
     let save_path = format!(
         "{}/archive.tar",
         save_location.to_str().unwrap().trim_end_matches('/')
     );
 
     let mut archive = Builder::new(Vec::new());
-
-    println!("Creating archive at: {:?}", save_path);
+    fs::create_dir_all("/tmp/archive")?;
+    fs::copy(path, "/tmp/archive")?;
 
     if path.is_dir() {
-        let Ok(_) = archive.append_dir_all(path.file_name().unwrap(), path) else {
-            eprintln!("Could not append directory to archive");
-            return None;
-        };
+        archive.append_dir_all(path.file_name().unwrap(), "/tmp/archive")?;
     }
 
     if path.is_file() {
-        let Ok(_) = archive.append_file(path.file_name().unwrap(), &mut File::open(path).unwrap())
-        else {
-            eprintln!("Could not append file to archive");
-            return None;
-        };
+        archive.append_file(path.file_name().unwrap(), &mut File::open(path).unwrap())?;
     }
 
     let hashes_path = format!("{}/hashes.json", save_location.to_str().unwrap());
@@ -169,22 +163,13 @@ pub fn create_tar(path: &Path, save_location: &Path) -> Option<String> {
         .append_file("hashes.asics", &mut File::open(asics_path).unwrap())
         .unwrap();
 
-    let Ok(archive) = archive.into_inner() else {
-        eprintln!("Could not create archive");
-        return None;
-    };
+    let archive = archive.into_inner()?;
+    let mut file = File::create(&save_path)?;
+    file.write_all(&archive)?;
 
-    let Ok(mut file) = File::create(&save_path) else {
-        eprintln!("Could not create file: {:?}", save_path);
-        return None;
-    };
+    fs::remove_dir_all("/tmp/archive")?;
 
-    let Ok(_) = file.write_all(&archive) else {
-        eprintln!("Could not write archive to file: {:?}", save_path);
-        return None;
-    };
-
-    return Some(save_path.to_string());
+    return Ok(save_path.to_string());
 }
 
 #[cfg(test)]
@@ -226,7 +211,7 @@ mod tests {
         let path = Path::new("./test_files");
         let save_location = Path::new("./");
         let arch = create_tar(&path, &save_location);
-        assert_eq!(arch.is_some(), true);
+        assert_eq!(arch.is_ok(), true);
         assert!(File::open(arch.unwrap()).is_ok());
     }
 }

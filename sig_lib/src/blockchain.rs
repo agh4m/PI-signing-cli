@@ -5,7 +5,7 @@ use std::fs::File;
 use std::result::Result;
 use web3::signing::SecretKey;
 use web3::transports::Http;
-use web3::types::{Address, Bytes, TransactionParameters, TransactionReceipt, H256};
+use web3::types::{Address, Bytes, TransactionParameters, H256};
 use web3::Web3;
 
 pub async fn save_certificate(
@@ -24,7 +24,7 @@ pub async fn save_certificate(
     let abi_file = File::open("./abi.json")?;
     let contract = Contract::load(abi_file)?;
     let function = contract.function("storeHash")?;
-    
+
     let arg: Token = Token::String(sig_hash.to_string());
 
     let encoded_call = function.encode_input(&[arg])?;
@@ -65,6 +65,6 @@ pub async fn get_certificate_hash(node_url: &str, tx_hash: &str) -> Result<Strin
             let stored_hash: &Bytes = &log.data;
             return Ok(format!("{:x?}", stored_hash));
         }
-        None => Err("Failed to get stored_hash")?
+        None => Err("Failed to get stored_hash")?,
     }
 }

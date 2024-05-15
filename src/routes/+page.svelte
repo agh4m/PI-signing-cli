@@ -3,8 +3,7 @@
 	import Input from '$lib/components/ui/input/input.svelte';
 	import { invoke } from '@tauri-apps/api';
 
-	let password = '';
-	let username = '';
+	let token = '';
 
 	async function login() {
 		let err = document.getElementById('err');
@@ -17,17 +16,15 @@
 			err.classList.add('hidden');
 		}
 
-		console.log(password, username);
-		if (username === '' || password === '' || username === undefined || password === undefined) {
+		if (token === '' || token === undefined) {
 			err.classList.remove('hidden');
 			err.classList.add('flex');
-			err.innerHTML = 'Please enter an username, password';
+			err.innerHTML = 'Please enter a token.';
 			return;
 		}
 
-		await invoke('login_user', { username: username, password: password })
+		await invoke('login_user', { token: token })
 			.then((token) => {
-				console.log(token);
 				if (token === 'Could not login') {
 					err.classList.remove('hidden');
 					err.classList.add('flex');
@@ -55,10 +52,9 @@
 		Login failed, try logging in again.
 	</div>
 	<h1 class="text-4xl font-bold text-white">Sign in to DiSA</h1>
-	<p class="mb-8 text-white">Start uploading your files today.</p>
-	<Input class="w-80 text-white" bind:value={username} placeholder="Email" type="text" />
-	<Input class="w-80 text-white" bind:value={password} type="password" placeholder="Password" />
-	<Button class="shadown-md h-10 w-80 bg-zinc-700 font-semibold shadow-zinc-950" on:click={login}
-		>Login</Button
-	>
+	<p class="mb-8 text-white text-center">To start uploading your files login using the token you get from the webapp.</p>
+	<Input class="w-80 text-white" bind:value={token} placeholder="Token" type="text" />
+	<Button class="shadown-md h-10 w-80 bg-zinc-700 font-semibold shadow-zinc-950" on:click={login}>
+        Login
+    </Button>
 </div>

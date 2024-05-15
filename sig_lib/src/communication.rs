@@ -122,3 +122,23 @@ pub async fn login(username: String, password: String) -> Option<LoginResponse> 
         }
     }
 }
+
+pub async fn ping(token: &str) -> Option<&str> {
+    let client = Client::new();
+    let response = client
+        .get("http://localhost:8000/ping/")
+        .bearer_auth(token.to_string())
+        .send()
+        .await;
+
+    match response {
+        Ok(res) => match res.status().as_u16() {
+            200 => {
+                assert_eq!(res.text().await.unwrap(), "\"pong\"");
+                return Some("Pong")
+            },
+            _ => return None,
+        },
+        _ => return None,
+    }
+}

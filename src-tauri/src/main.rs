@@ -1,6 +1,6 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-use disa_lib::communication::login;
+use disa_lib::communication::ping;
 use std::sync::Mutex;
 
 struct State {
@@ -23,16 +23,14 @@ impl State {
 #[tauri::command]
 async fn login_user(
     state: tauri::State<'_, Mutex<State>>,
-    username: String,
-    password: String,
+    token: String
 ) -> Result<String, String> {
-    println!("login");
-    let token = login(username.to_string(), password.to_string()).await;
+    let res = ping(&token).await;
 
-    match token {
-        Some(t) => {
-            state.lock().unwrap().set_token(&t.access_token);
-            return Ok("Loged in".to_string());
+    match res {
+        Some(_) => {
+            state.lock().unwrap().set_token(&token);
+            return Ok("Logged in".to_string());
         }
         None => return Err("Could not login".into()),
     }

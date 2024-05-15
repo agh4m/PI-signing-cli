@@ -31,10 +31,6 @@ It is needed to have both C++ and Rust tooling for development, as well as Bun o
 
 ### Dotenv
 
-```
-This section only applies to the cli for now, the tauri app will eventually load the same .env.
-```
-
 This project uses a `.env` file to store the environment variables.
 
 This file should be placed on the root of either the cli or gui app `(src-tauri)`.
@@ -60,7 +56,9 @@ The last four variables are used to connect with the blockchain to save the hash
 
 An abi.json file is also required as it describes the contract. This file should be placed on the same folder as the .env.
 
-### Building
+### CLI
+
+#### Building
 
 To build the project, you need to have Rust and Cargo installed. You also need to have the Autentication.Gov skd installed and a suitable C++ compiler installed in your system.
 
@@ -78,7 +76,7 @@ cargo build --release
 
 This will compile the project and generate the binary in the `target/debug` or `target/release` directory respectively.
 
-### Running
+#### Running
 
 To run the project, you can use the following command:
 
@@ -89,11 +87,7 @@ cargo run -- <args>
 This will compile the project and run it with the given arguments.
 Similarly to the build command, you can use the `--release` flag, before any other arguments, to run the project in production mode.
 
-#### Available arguments
-
-```
-This section only applies to the cli, as should be obvious.
-```
+##### Available arguments
 
 The available arguments are:
 ```
@@ -109,6 +103,28 @@ The available arguments are:
 -V --version: Show the version of the tool (Exclusive)
 -o --only_blockchain: Special tag used to skip all steps, except the upload to the blockchain.
 ```
+
+### GUI
+
+#### Building
+
+To build the gui, simply run
+
+```sh
+bun tauri build
+```
+
+This will ensure that the SvelteKit project is built and then bundled as .deb, .exe, or .dmg.
+
+#### Running
+
+Running this project in development mode is done with
+
+```sh
+bun tauri dev
+```
+
+as per Tauri's instructions, running the Tauri app and the SvelteKit simultaneosly in one command.
 
 ## Testing
 
@@ -158,3 +174,13 @@ You might also want to enable the service to start on boot:
 ```sh
 sudo systemctl enable pcscd
 ```
+
+> The tauri app starts but only shows a black screen on the development environment
+
+Please add this environment variable
+
+```sh
+export WEBKIT_DISABLE_DMABUF_RENDERER=1
+```
+
+This fix is discussed in [this thread](https://github.com/tauri-apps/tauri/issues/9304) and mostly seems to affect Nvidia GPU's.

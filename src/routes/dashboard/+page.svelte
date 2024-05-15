@@ -17,12 +17,14 @@
 		const spinner = document.getElementById('spinner');
 		const spinner_msg = document.getElementById('spinner-msg');
 		const holder = document.getElementById('holder');
-		if (spinner === null || spinner_msg === null || holder === null) {
+        const button = document.getElementById('button');
+		if (spinner === null || spinner_msg === null || holder === null || button === null) {
 			console.log('How did you get here?');
 			return;
 		}
 		holder.classList.remove('hidden');
 		holder.classList.add('flex');
+        button.classList.add('hidden');
 
 		const selected = await open({
 			directory: true,
@@ -73,13 +75,11 @@
 </script>
 
 <div class="ms-52 grid h-full px-5">
-	<div class="flex flex-col py-10">
-		<div class="flex-grow"></div>
+	<div class="flex flex-col py-10 items-center justify-center">
+        <Button class="w-64" on:click={upload} id="button">Upload files</Button>
 		<div class="hidden flex-col items-center justify-center gap-2" id="holder">
 			<Spinner color="white" class="h-24 animate-spin fill-white text-gray-600" id="spinner" />
 			<h1 class="text-2xl font-semibold text-white" id="spinner-msg">Creating Manifest</h1>
 		</div>
-		<div class="flex-grow"></div>
-		<Button class="w-full" on:click={upload}>Upload files</Button>
 	</div>
 </div>

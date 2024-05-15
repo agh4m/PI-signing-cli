@@ -17,6 +17,7 @@ serde_json = "1"
 disa_lib = { path = "../sig_lib" }
 dotenv = "0.15.0"
 dotenv_codegen = "0.15.0"
+anyhow = "1.0.83"
 
 [features]
 # This feature is used for production builds or when a dev server is not specified, DO NOT REMOVE!!

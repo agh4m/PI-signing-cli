@@ -43,7 +43,7 @@ async fn login_user(
 }
 
 #[tauri::command]
-fn create_manifest(path: String) -> Result<String, String> {
+async fn create_manifest(path: String) -> Result<String, String> {
     println!("{}", path);
     let path = Path::new(&path);
     let save_location = Path::new("/tmp");
@@ -71,16 +71,17 @@ fn create_manifest(path: String) -> Result<String, String> {
 }
 
 #[tauri::command]
-fn sign(hash_json: String, cmd: bool) -> Result<String, String> {
+async fn sign(hash_json: String) -> Result<String, String> {
     let basic_auth_user = dotenv!("BASIC_AUTH_USER");
     let basic_auth_password = dotenv!("BASIC_AUTH_PASS");
     let application_id = dotenv!("APPLICATION_ID");
+    println!("has{}", hash_json);
 
     let err = sig_doc(
         &hash_json,
         &hash_json.replace(".json", ".asics"),
         true, // sign
-        cmd,
+        false,
         basic_auth_user,
         basic_auth_password,
         application_id,
@@ -89,6 +90,7 @@ fn sign(hash_json: String, cmd: bool) -> Result<String, String> {
     if err != 0 {
         return Err("Could not sign document")?;
     }
+    println!("{}", err);
 
     match hash_file(&Path::new(&hash_json)) {
         Some(document) => {
@@ -99,11 +101,15 @@ fn sign(hash_json: String, cmd: bool) -> Result<String, String> {
 }
 
 #[tauri::command]
-async fn send_blockchain(hashed_manifest: String) -> String {
+async fn blockchain(hashed_manifest: String) -> String {
     let contract_address = dotenv!("CONTRACT_ADDRESS");
     let node_url = dotenv!("NODE_URL");
     let private_key = dotenv!("PRIVATE_KEY");
     let wallet_address = dotenv!("WALLET_ADDRESS");
+    println!("{}", contract_address);
+    println!("{}", node_url);
+    println!("{}", private_key);
+    println!("{}", wallet_address);
 
     let address = save_certificate(
         &hashed_manifest,
@@ -114,19 +120,22 @@ async fn send_blockchain(hashed_manifest: String) -> String {
     )
     .await
     .unwrap_or_else(|_| "".to_string());
+    println!("{}", address);
 
     return address;
 }
 
 #[tauri::command]
-async fn send_to_server(
+async fn server(
     state: tauri::State<'_, Mutex<State>>,
     path: String,
     address: String,
 ) -> Result<(), String> {
+    println!("here");
     let path = Path::new(&path);
     let save_location = Path::new("/tmp");
     let bearer_token = state.lock().unwrap().token.clone();
+    println!("{}", bearer_token);
 
     match send_file(&path, &save_location, &bearer_token, &address).await {
         Ok(_) => return Ok(()),
@@ -142,8 +151,8 @@ fn main() {
             login_user,
             create_manifest,
             sign,
-            send_blockchain,
-            send_to_server
+            blockchain,
+            server
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

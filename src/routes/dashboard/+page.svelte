@@ -17,14 +17,14 @@
 		const spinner = document.getElementById('spinner');
 		const spinner_msg = document.getElementById('spinner-msg');
 		const holder = document.getElementById('holder');
-        const button = document.getElementById('button');
+		const button = document.getElementById('button');
 		if (spinner === null || spinner_msg === null || holder === null || button === null) {
 			console.log('How did you get here?');
 			return;
 		}
 		holder.classList.remove('hidden');
 		holder.classList.add('flex');
-        button.classList.add('hidden');
+		button.classList.add('hidden');
 
 		const selected = await open({
 			directory: true,
@@ -47,9 +47,7 @@
 
 		let document_hash;
 		try {
-			document_hash = /** @type {string} */ (
-				await invoke('sign', { hash_json: manifest_path, cmd: false })
-			);
+			document_hash = /** @type {string} */ (await invoke('sign', { hashJson: manifest_path }));
 		} catch (err) {
 			console.log(err);
 		}
@@ -57,7 +55,7 @@
 		spinner_msg.innerHTML = 'Sending to Blockchain';
 
 		const blockchain_address = /** @type {string} */ (
-			await invoke('send_blockchain', { hashed_manifest: document_hash })
+			await invoke('blockchain', { hashedManifest: document_hash })
 		);
 		await sleep(1);
 		spinner_msg.innerHTML = 'Sending to the archive';
@@ -67,7 +65,11 @@
 			return;
 		}
 
-		await invoke('sign', { hash_json: manifest_path, cmd: false }).catch((err) => console.log(err));
+		try {
+			await invoke('server', { path: manifest_path, address: blockchain_address });
+		} catch (err) {
+			console.log(err);
+		}
 		await sleep(1);
 		spinner.classList.add('hidden');
 		spinner_msg.innerHTML = 'Done';
@@ -75,8 +77,8 @@
 </script>
 
 <div class="ms-52 grid h-full px-5">
-	<div class="flex flex-col py-10 items-center justify-center">
-        <Button class="w-64" on:click={upload} id="button">Upload files</Button>
+	<div class="flex flex-col items-center justify-center py-10">
+		<Button class="w-64" on:click={upload} id="button">Upload files</Button>
 		<div class="hidden flex-col items-center justify-center gap-2" id="holder">
 			<Spinner color="white" class="h-24 animate-spin fill-white text-gray-600" id="spinner" />
 			<h1 class="text-2xl font-semibold text-white" id="spinner-msg">Creating Manifest</h1>

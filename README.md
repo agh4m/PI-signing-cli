@@ -175,7 +175,7 @@ You might also want to enable the service to start on boot:
 sudo systemctl enable pcscd
 ```
 
-> The tauri app starts but only shows a black screen on the development environment
+> The tauri app starts but only shows a blank screen on the development environment
 
 Please add this environment variable
 
@@ -184,3 +184,13 @@ export WEBKIT_DISABLE_DMABUF_RENDERER=1
 ```
 
 This fix is discussed in [this thread](https://github.com/tauri-apps/tauri/issues/9304) and mostly seems to affect Nvidia GPU's.
+
+> My Lsp crashes when editing this project
+
+If the Lsp runs in node, there is a memory leak caused by cxx compilation artifacts that occurs when it tries to index the target/ forders.
+
+This memory leak shows in the form of a node process using up to 4.7Gb or whatever your limit for a node process is, and higher than expected cpu usage.
+
+To mitigate this, stop any Lsp's, any dev servers and delete any target/ folders cargo might have created (specially inside the cli, sig_lib and src-tauri folders).
+
+If possible, add those same folders to an exclusion list so that the Lsp ignores them.

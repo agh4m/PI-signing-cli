@@ -41,6 +41,7 @@
 			manifest_path = /** @type {string} */ (await invoke('create_manifest', { path: selected }));
 		} catch (err) {
 			console.log(err);
+			return;
 		}
 		await sleep(1);
 		spinner_msg.innerHTML = 'Waiting for signature';
@@ -50,6 +51,7 @@
 			document_hash = /** @type {string} */ (await invoke('sign', { hashJson: manifest_path }));
 		} catch (err) {
 			console.log(err);
+			return;
 		}
 		await sleep(1);
 		spinner_msg.innerHTML = 'Sending to Blockchain';
@@ -66,9 +68,10 @@
 		}
 
 		try {
-			await invoke('server', { path: manifest_path, address: blockchain_address });
+			await invoke('server', { path: selected, address: blockchain_address });
 		} catch (err) {
 			console.log(err);
+			return;
 		}
 		await sleep(1);
 		spinner.classList.add('hidden');

@@ -51,6 +51,7 @@ pub async fn send_file(
         eprintln!("Server is not available, exiting...");
         exit(1);
     }
+    println!("{}, {}", path.to_str().unwrap(), save_location.to_str().unwrap());
 
     let archive = create_tar(&path, &save_location).unwrap();
 

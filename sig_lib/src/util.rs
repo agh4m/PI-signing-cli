@@ -1,3 +1,4 @@
+use copy_dir::copy_dir;
 use serde::{Deserialize, Serialize};
 use serde_json;
 use sha2::{Digest, Sha256};
@@ -141,18 +142,29 @@ pub fn create_tar(path: &Path, save_location: &Path) -> Result<String, std::io::
         save_location.to_str().unwrap().trim_end_matches('/')
     );
 
+    if Path::new("/tmp/archive").exists() {
+        fs::remove_dir_all("/tmp/archive")?;
+    }
+
     let mut archive = Builder::new(Vec::new());
-    fs::create_dir_all("/tmp/archive")?;
-    fs::copy(path, "/tmp/archive")?;
 
     if path.is_dir() {
-        archive.append_dir_all(path.file_name().unwrap(), "/tmp/archive")?;
+        println!("dir!");
+        let errors = copy_dir(path, "/tmp/archive/").unwrap();
+        if errors.is_empty() {
+            println!("no errors");
+        }
+        println!("here");
+        for error in errors {
+            println!("{}", error);
+        }
     }
 
     if path.is_file() {
-        archive.append_file(path.file_name().unwrap(), &mut File::open(path).unwrap())?;
+        // fs::copy()
     }
 
+    archive.append_dir_all("archive", "/tmp/archive")?;
     let hashes_path = format!("{}/hashes.json", save_location.to_str().unwrap());
     let asics_path = format!("{}/hashes.asics", save_location.to_str().unwrap());
 
@@ -167,7 +179,7 @@ pub fn create_tar(path: &Path, save_location: &Path) -> Result<String, std::io::
     let mut file = File::create(&save_path)?;
     file.write_all(&archive)?;
 
-    fs::remove_dir_all("/tmp/archive")?;
+    // fs::remove_dir_all("/tmp/archive")?;
 
     return Ok(save_path.to_string());
 }
@@ -209,7 +221,7 @@ mod tests {
     fn test_create_tar() {
         // This test assumes an existing manifest with its signature
         let path = Path::new("./test_files");
-        let save_location = Path::new("./");
+        let save_location = Path::new("/tmp");
         let arch = create_tar(&path, &save_location);
         assert_eq!(arch.is_ok(), true);
         assert!(File::open(arch.unwrap()).is_ok());

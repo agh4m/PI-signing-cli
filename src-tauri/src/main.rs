@@ -110,6 +110,7 @@ async fn blockchain(hashed_manifest: String) -> String {
     println!("{}", node_url);
     println!("{}", private_key);
     println!("{}", wallet_address);
+    println!("{}", hashed_manifest);
 
     let address = save_certificate(
         &hashed_manifest,
@@ -118,8 +119,7 @@ async fn blockchain(hashed_manifest: String) -> String {
         private_key,
         wallet_address,
     )
-    .await
-    .unwrap_or_else(|_| "".to_string());
+    .await.unwrap();
     println!("{}", address);
 
     return address;

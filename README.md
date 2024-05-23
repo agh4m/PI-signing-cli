@@ -18,7 +18,7 @@ To run this project you want to either run from within the cli or the src-tauri 
 ## Development
 
 Part of this project is developed in Rust, using the [clap](https://docs.rs/clap/latest/clap/index.html) library for the command line interface.
-The gui development is done with [Tauri](https://tauri.app/), which was choosen for its use of web technologies and their necessity when interacting with the Autenticacao.gov auth api.
+The gui development is done with [Tauri](https://tauri.app/), which was chosen for its use of web technologies and their necessity when interacting with the Autenticacao.gov auth api.
 
 It also has an adapter for the [Autentication.Gov](https://github.com/amagovpt/autenticacao.gov) lib used to sign the manifest, written in C++.
 This has been tested with both version 3.11 and version 3.12 of that library.
@@ -184,6 +184,16 @@ export WEBKIT_DISABLE_DMABUF_RENDERER=1
 ```
 
 This fix is discussed in [this thread](https://github.com/tauri-apps/tauri/issues/9304) and mostly seems to affect Nvidia GPU's.
+
+> Cannot compile the tauri app on Arch Linux. (ERROR: Strip call failed)
+
+This is a [known issue](https://github.com/tauri-apps/tauri/issues/8929) with linuxdeploy.
+
+To work around this, run the build command with the following environment variable set:
+
+```sh
+NO_STRIP=true bun tauri build
+```
 
 > My Lsp crashes when editing this project
 

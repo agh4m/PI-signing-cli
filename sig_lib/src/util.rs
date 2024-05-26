@@ -126,7 +126,6 @@ pub fn save_file(documents: &Vec<Document>, path: &str) -> Option<String> {
         eprintln!("Could not create file: {:?}", path);
         return None;
     };
-    println!("Saving to: {:?}", save_path);
 
     let Ok(_) = file.write_all(json.as_bytes()) else {
         eprintln!("Could not write hashes to file: {:?}", path);
@@ -149,12 +148,7 @@ pub fn create_tar(path: &Path, save_location: &Path) -> Result<String, std::io::
     let mut archive = Builder::new(Vec::new());
 
     if path.is_dir() {
-        println!("dir!");
         let errors = copy_dir(path, "/tmp/archive/").unwrap();
-        if errors.is_empty() {
-            println!("no errors");
-        }
-        println!("here");
         for error in errors {
             println!("{}", error);
         }
@@ -179,7 +173,7 @@ pub fn create_tar(path: &Path, save_location: &Path) -> Result<String, std::io::
     let mut file = File::create(&save_path)?;
     file.write_all(&archive)?;
 
-    // fs::remove_dir_all("/tmp/archive")?;
+    fs::remove_dir_all("/tmp/archive")?;
 
     return Ok(save_path.to_string());
 }

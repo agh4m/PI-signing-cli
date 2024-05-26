@@ -51,12 +51,8 @@ pub async fn send_file(
         eprintln!("Server is not available, exiting...");
         exit(1);
     }
-    println!("{}, {}", path.to_str().unwrap(), save_location.to_str().unwrap());
 
     let archive = create_tar(&path, &save_location).unwrap();
-
-    println!("Sending file to server");
-
     let read_archive = read(&archive).unwrap();
 
     let part = multipart::Part::bytes(read_archive)

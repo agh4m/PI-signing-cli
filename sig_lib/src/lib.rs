@@ -18,5 +18,7 @@ pub mod ffi {
             basicAuthPassword: &str,
             applicationID: &str,
         ) -> i64;
+
+        fn verify(sig_location: &str) -> i64;
     }
 }

@@ -5,7 +5,7 @@ use std::fs::File;
 use std::result::Result;
 use web3::signing::SecretKey;
 use web3::transports::Http;
-use web3::types::{Address, Bytes, TransactionParameters, H256};
+use web3::types::{Address, TransactionParameters, H256};
 use web3::Web3;
 
 pub async fn save_certificate(
@@ -62,8 +62,9 @@ pub async fn get_certificate_hash(node_url: &str, tx_hash: &str) -> Result<Strin
     match receipt {
         Some(receipt) => {
             let log = &receipt.logs[0];
-            let stored_hash: &Bytes = &log.data;
-            return Ok(format!("{:x?}", stored_hash));
+            let stored_hash = &log.data.0;
+            let hash = stored_hash.iter().map(|b| *b as char).collect::<String>();
+            return Ok(hash);
         }
         None => Err("Failed to get stored_hash")?,
     }

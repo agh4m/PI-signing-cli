@@ -1,8 +1,8 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-use disa_lib::blockchain::save_certificate;
+use disa_lib::blockchain::{get_certificate_hash, save_certificate};
 use disa_lib::communication::{ping, send_file};
-use disa_lib::ffi::sig_doc;
+use disa_lib::ffi::{sig_doc, verify as verify_sig};
 use disa_lib::util::{hash_file, save_file, traverse_directory};
 use dotenv_codegen::dotenv;
 use std::path::Path;
@@ -111,7 +111,8 @@ async fn blockchain(hashed_manifest: String) -> String {
         private_key,
         wallet_address,
     )
-    .await.unwrap();
+    .await
+    .unwrap_or_else(|_| "".to_string());
 
     return address;
 }
@@ -132,6 +133,25 @@ async fn server(
     }
 }
 
+#[tauri::command]
+async fn verify(path: String) -> i64 {
+    return verify_sig(&path);
+}
+
+#[tauri::command]
+async fn verify_blockchain(manifest_path: String, blockchain_address: String) -> bool {
+    let manifest_hash = hash_file(Path::new(&manifest_path)).unwrap();
+
+    let node_url = dotenv!("NODE_URL");
+    let blockchain_hash = get_certificate_hash(node_url, &blockchain_address).await;
+
+    if let Ok(blck_hash) = blockchain_hash {
+        return blck_hash.get(64..blck_hash.len()).unwrap() == manifest_hash.hash;
+    } else {
+        return false;
+    }
+}
+
 fn main() {
     let state = Mutex::new(State::new());
     tauri::Builder::default()
@@ -141,7 +161,9 @@ fn main() {
             create_manifest,
             sign,
             blockchain,
-            server
+            server,
+            verify,
+            verify_blockchain
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

@@ -50,8 +50,8 @@
 			multiple: false
 		});
 
-        holder.classList.remove('hidden');
-        holder.classList.add('flex');
+		holder.classList.remove('hidden');
+		holder.classList.add('flex');
 
 		if (selected === null) {
 			spinner.classList.add('hidden');
@@ -64,6 +64,7 @@
 		} catch (err) {
 			spinner_msg.innerHTML = 'Error occured creating the manifest';
 			spinner.classList.add('hidden');
+			refresh.classList.remove('hidden');
 			console.log(err);
 			return;
 		}
@@ -77,6 +78,7 @@
 		} catch (err) {
 			spinner_msg.innerHTML = 'Error occured signing the document';
 			spinner.classList.add('hidden');
+			refresh.classList.remove('hidden');
 			console.log(err);
 			return;
 		}
@@ -92,6 +94,7 @@
 		if (blockchain_address === '') {
 			spinner_msg.innerHTML = 'Failed to send to the Blockchain';
 			spinner.classList.add('hidden');
+			refresh.classList.remove('hidden');
 			return;
 		}
 
@@ -108,6 +111,7 @@
 		} catch (err) {
 			spinner_msg.innerHTML = 'Error occured when sending files to the server';
 			spinner.classList.add('hidden');
+			refresh.classList.remove('hidden');
 			console.log(err);
 			return;
 		}

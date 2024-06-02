@@ -2,6 +2,14 @@
 	import Button from './ui/button/button.svelte';
 	import * as DropdownMenu from './ui/dropdown-menu';
 	import { UserCircleSolid } from 'flowbite-svelte-icons';
+
+	/**
+	 *  @param {Event} e
+	 */
+	function logout(e) {
+        e.preventDefault();
+		window.location.href = '/';
+	}
 </script>
 
 <div class="absolute left-0 flex h-screen w-52 flex-col gap-4 bg-zinc-900 p-5">
@@ -23,9 +31,7 @@
 		</DropdownMenu.Trigger>
 		<DropdownMenu.Content class="w-48 border-black bg-black text-white">
 			<DropdownMenu.Group>
-				<DropdownMenu.Item>My files</DropdownMenu.Item>
-				<DropdownMenu.Separator class="mx-auto w-[90%] text-zinc-300" />
-				<DropdownMenu.Item>Log out</DropdownMenu.Item>
+				<DropdownMenu.Item on:click={logout}>Log out</DropdownMenu.Item>
 			</DropdownMenu.Group>
 		</DropdownMenu.Content>
 	</DropdownMenu.Root>

@@ -9,4 +9,5 @@ fn main() {
     println!("cargo:rerun-if-changed=lib/library.cpp");
     println!("cargo:rerun-if-changed=lib/library.h");
     println!("cargo:rustc-link-lib=pteidlib");
+    println!("cargo:rustc-link-lib=digidocpp");
 }
